@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${tituloForm}"></title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script defer th:src="@{/js/app.js}"></script>
+</head>
+<body>
+<main class="container narrow">
+    <h1 th:text="${tituloForm}"></h1>
+
+    <form class="stack-form" th:action="@{/rh/funcionarios/salvar}" th:object="${funcionario}" method="post">
+        <input type="hidden" th:field="*{id}">
+
+        <label for="nome">Nome</label>
+        <input id="nome" th:field="*{nome}" type="text" required>
+        <small class="error" th:if="${#fields.hasErrors('nome')}" th:errors="*{nome}"></small>
+
+        <label for="email">Email</label>
+        <input id="email" th:field="*{email}" type="email" required>
+        <small class="error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></small>
+
+        <label for="cpf">CPF</label>
+        <input id="cpf" th:field="*{cpf}" type="text" maxlength="14" inputmode="numeric" placeholder="000.000.000-00" required>
+        <small class="error" th:if="${#fields.hasErrors('cpf')}" th:errors="*{cpf}"></small>
+
+        <label for="cargo">Cargo</label>
+        <input id="cargo" th:field="*{cargo}" type="text" required>
+        <small class="error" th:if="${#fields.hasErrors('cargo')}" th:errors="*{cargo}"></small>
+
+        <label for="departamentoId">Departamento</label>
+        <select id="departamentoId" th:field="*{departamentoId}" required>
+            <option value="">Selecione...</option>
+            <option th:each="dep : ${departamentos}" th:value="${dep.id}" th:text="${dep.nome}"></option>
+        </select>
+        <small class="error" th:if="${#fields.hasErrors('departamentoId')}" th:errors="*{departamentoId}"></small>
+
+        <label for="salarioInicial">Salário atual/inicial</label>
+        <input id="salarioInicial" type="text" inputmode="decimal" placeholder="R$ 0,00" required
+               th:value="*{salarioInicial}" th:readonly="${funcionario.id != null}">
+        <input id="salarioInicialRaw" th:field="*{salarioInicial}" type="hidden">
+        <small class="error" th:if="${#fields.hasErrors('salarioInicial')}" th:errors="*{salarioInicial}"></small>
+
+        <div class="actions-row">
+            <button class="btn btn-primary" type="submit" id="btn-salvar">Salvar</button>
+            <a class="btn" th:href="@{/rh/funcionarios}">Voltar</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

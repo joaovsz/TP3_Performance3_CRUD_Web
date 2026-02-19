@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MovimentacaoRh.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TP3 Performance CRUD Web</a> &gt; <a href="index.source.html" class="el_package">br.com.faculdade.tp3.model</a> &gt; <span class="el_source">MovimentacaoRh.java</span></div><h1>MovimentacaoRh.java</h1><pre class="source lang-java linenums">package br.com.faculdade.tp3.model;
+
+import br.com.faculdade.tp3.model.enums.TipoMovimentacaoRh;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = &quot;movimentacoes_rh&quot;)
+<span class="fc" id="L22">public class MovimentacaoRh {</span>
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = &quot;funcionario_id&quot;, nullable = false)
+    @JsonIgnore
+    private Funcionario funcionario;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 40)
+    private TipoMovimentacaoRh tipo;
+
+    @Column(nullable = false, length = 255)
+    private String descricao;
+
+    @Column(name = &quot;salario_anterior&quot;, precision = 12, scale = 2)
+    private BigDecimal salarioAnterior;
+
+    @Column(name = &quot;salario_novo&quot;, precision = 12, scale = 2)
+    private BigDecimal salarioNovo;
+
+    @Column(name = &quot;movimentado_em&quot;, nullable = false)
+    private LocalDateTime movimentadoEm;
+
+    @PrePersist
+    public void prePersist() {
+<span class="fc" id="L51">        movimentadoEm = LocalDateTime.now();</span>
+<span class="fc" id="L52">    }</span>
+
+    public Long getId() {
+<span class="fc" id="L55">        return id;</span>
+    }
+
+    public Funcionario getFuncionario() {
+<span class="nc" id="L59">        return funcionario;</span>
+    }
+
+    public void setFuncionario(Funcionario funcionario) {
+<span class="fc" id="L63">        this.funcionario = funcionario;</span>
+<span class="fc" id="L64">    }</span>
+
+    public TipoMovimentacaoRh getTipo() {
+<span class="fc" id="L67">        return tipo;</span>
+    }
+
+    public void setTipo(TipoMovimentacaoRh tipo) {
+<span class="fc" id="L71">        this.tipo = tipo;</span>
+<span class="fc" id="L72">    }</span>
+
+    public String getDescricao() {
+<span class="fc" id="L75">        return descricao;</span>
+    }
+
+    public void setDescricao(String descricao) {
+<span class="fc" id="L79">        this.descricao = descricao;</span>
+<span class="fc" id="L80">    }</span>
+
+    public BigDecimal getSalarioAnterior() {
+<span class="fc" id="L83">        return salarioAnterior;</span>
+    }
+
+    public void setSalarioAnterior(BigDecimal salarioAnterior) {
+<span class="fc" id="L87">        this.salarioAnterior = salarioAnterior;</span>
+<span class="fc" id="L88">    }</span>
+
+    public BigDecimal getSalarioNovo() {
+<span class="fc" id="L91">        return salarioNovo;</span>
+    }
+
+    public void setSalarioNovo(BigDecimal salarioNovo) {
+<span class="fc" id="L95">        this.salarioNovo = salarioNovo;</span>
+<span class="fc" id="L96">    }</span>
+
+    public LocalDateTime getMovimentadoEm() {
+<span class="fc" id="L99">        return movimentadoEm;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

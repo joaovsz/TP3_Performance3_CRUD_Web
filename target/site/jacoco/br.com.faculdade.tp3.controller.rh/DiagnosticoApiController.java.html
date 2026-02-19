@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>DiagnosticoApiController.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TP3 Performance CRUD Web</a> &gt; <a href="index.source.html" class="el_package">br.com.faculdade.tp3.controller.rh</a> &gt; <span class="el_source">DiagnosticoApiController.java</span></div><h1>DiagnosticoApiController.java</h1><pre class="source lang-java linenums">package br.com.faculdade.tp3.controller.rh;
+
+import br.com.faculdade.tp3.service.FaultSimulationService;
+import java.util.Map;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping(&quot;/api/rh/diagnostico&quot;)
+public class DiagnosticoApiController {
+
+    private final FaultSimulationService faultSimulationService;
+
+<span class="fc" id="L17">    public DiagnosticoApiController(FaultSimulationService faultSimulationService) {</span>
+<span class="fc" id="L18">        this.faultSimulationService = faultSimulationService;</span>
+<span class="fc" id="L19">    }</span>
+
+    @GetMapping(&quot;/timeout&quot;)
+    public ResponseEntity&lt;Map&lt;String, String&gt;&gt; timeout(
+            @RequestParam(defaultValue = &quot;100&quot;) long delayMs,
+            @RequestParam(defaultValue = &quot;200&quot;) long timeoutMs
+    ) {
+<span class="nc" id="L26">        String status = faultSimulationService.simularTimeout(delayMs, timeoutMs);</span>
+<span class="nc" id="L27">        return ResponseEntity.ok(Map.of(&quot;status&quot;, status));</span>
+    }
+
+    @GetMapping(&quot;/sobrecarga&quot;)
+    public ResponseEntity&lt;Map&lt;String, String&gt;&gt; sobrecarga(@RequestParam(defaultValue = &quot;1000&quot;) long holdMs) {
+<span class="fc" id="L32">        String status = faultSimulationService.simularSobrecarga(holdMs);</span>
+<span class="fc" id="L33">        return ResponseEntity.ok(Map.of(&quot;status&quot;, status));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

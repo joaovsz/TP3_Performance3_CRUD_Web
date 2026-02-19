@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de RH</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <script defer th:src="@{/js/app.js}"></script>
+</head>
+<body>
+<main class="container">
+    <header class="header">
+        <h1>Painel de RH</h1>
+        <a class="btn btn-primary" th:href="@{/rh/funcionarios/novo}" id="btn-contratar">Contratar</a>
+    </header>
+
+    <section th:if="${sucesso}" class="alert alert-success" id="alerta-sucesso" th:text="${sucesso}"></section>
+    <section th:if="${erro}" class="alert alert-error" id="alerta-erro" th:text="${erro}"></section>
+
+    <form class="grid-form" method="get" th:action="@{/rh/funcionarios}">
+        <label for="filtroNome">Buscar por nome</label>
+        <input id="filtroNome" name="nome" type="text" th:value="${filtroNome}">
+
+        <label for="filtroAtivos">Status</label>
+        <select id="filtroAtivos" name="ativos">
+            <option th:selected="${filtroAtivos == null}" value="">Todos</option>
+            <option th:selected="${filtroAtivos == true}" value="true">Ativos</option>
+            <option th:selected="${filtroAtivos == false}" value="false">Inativos</option>
+        </select>
+
+        <button class="btn" type="submit" id="btn-filtrar">Filtrar</button>
+    </form>
+
+    <div class="table-wrap">
+        <table id="tabela-funcionarios">
+            <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Cargo</th>
+                <th>Departamento</th>
+                <th>Salário</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="funcionario : ${funcionarios}">
+                <td th:text="${funcionario.nome}"></td>
+                <td th:text="${funcionario.cargo}"></td>
+                <td th:text="${funcionario.departamento.sigla}"></td>
+                <td th:text="${funcionario.salario.valorAtual}"></td>
+                <td>
+                    <span th:classappend="${funcionario.status.name() == 'ATIVO'} ? 'badge badge-green' : 'badge badge-red'"
+                          th:text="${funcionario.status}"></span>
+                </td>
+                <td class="actions">
+                    <a class="btn btn-small" th:href="@{|/rh/funcionarios/${funcionario.id}/editar|}">Editar</a>
+                    <a class="btn btn-small" th:href="@{|/rh/funcionarios/${funcionario.id}/aumento|}">Aumentar salário</a>
+                    <a class="btn btn-small" th:href="@{|/rh/funcionarios/${funcionario.id}/promocao|}">Promover</a>
+                    <a class="btn btn-small" th:href="@{|/rh/funcionarios/${funcionario.id}/movimentacoes|}">Histórico</a>
+                    <form th:action="@{|/rh/funcionarios/${funcionario.id}/demitir|}" method="post"
+                          onsubmit="return confirmarAcao('Confirmar demissão?');">
+                        <button class="btn btn-small btn-warning" type="submit">Demitir</button>
+                    </form>
+                    <form th:action="@{|/rh/funcionarios/${funcionario.id}/excluir-definitivo|}" method="post"
+                          onsubmit="return confirmarAcao('Confirmar exclusão definitiva?');">
+                        <button class="btn btn-small btn-danger" type="submit">Excluir</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(funcionarios)}">
+                <td colspan="6">Nenhum funcionário encontrado.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</main>
+</body>
+</html>

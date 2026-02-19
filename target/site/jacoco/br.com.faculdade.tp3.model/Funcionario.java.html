@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Funcionario.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TP3 Performance CRUD Web</a> &gt; <a href="index.source.html" class="el_package">br.com.faculdade.tp3.model</a> &gt; <span class="el_source">Funcionario.java</span></div><h1>Funcionario.java</h1><pre class="source lang-java linenums">package br.com.faculdade.tp3.model;
+
+import br.com.faculdade.tp3.model.enums.FuncionarioStatus;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.Objects;
+
+@Entity
+@Table(
+        name = &quot;funcionarios&quot;,
+        uniqueConstraints = {
+                @UniqueConstraint(name = &quot;uk_funcionario_email&quot;, columnNames = &quot;email&quot;),
+                @UniqueConstraint(name = &quot;uk_funcionario_cpf&quot;, columnNames = &quot;cpf&quot;)
+        }
+)
+<span class="fc" id="L33">public class Funcionario {</span>
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, length = 120)
+    private String nome;
+
+    @Column(nullable = false, length = 160)
+    private String email;
+
+    @Column(nullable = false, length = 11)
+    private String cpf;
+
+    @Column(nullable = false, length = 100)
+    private String cargo;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private FuncionarioStatus status;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = &quot;departamento_id&quot;, nullable = false)
+    private Departamento departamento;
+
+    @OneToOne(mappedBy = &quot;funcionario&quot;, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference
+    private Salario salario;
+
+    @Column(name = &quot;data_admissao&quot;, nullable = false)
+    private LocalDate dataAdmissao;
+
+    @Column(name = &quot;data_demissao&quot;)
+    private LocalDate dataDemissao;
+
+    @Column(name = &quot;criado_em&quot;, nullable = false)
+    private LocalDateTime criadoEm;
+
+    @Column(name = &quot;atualizado_em&quot;, nullable = false)
+    private LocalDateTime atualizadoEm;
+
+    @PrePersist
+    public void prePersist() {
+<span class="fc" id="L77">        LocalDateTime agora = LocalDateTime.now();</span>
+<span class="fc" id="L78">        criadoEm = agora;</span>
+<span class="fc" id="L79">        atualizadoEm = agora;</span>
+<span class="fc" id="L80">    }</span>
+
+    @PreUpdate
+    public void preUpdate() {
+<span class="fc" id="L84">        atualizadoEm = LocalDateTime.now();</span>
+<span class="fc" id="L85">    }</span>
+
+    public void definirSalario(Salario salario) {
+<span class="fc" id="L88">        this.salario = salario;</span>
+<span class="fc" id="L89">        salario.setFuncionario(this);</span>
+<span class="fc" id="L90">    }</span>
+
+    public Long getId() {
+<span class="fc" id="L93">        return id;</span>
+    }
+
+    public void setId(Long id) {
+<span class="fc" id="L97">        this.id = id;</span>
+<span class="fc" id="L98">    }</span>
+
+    public String getNome() {
+<span class="fc" id="L101">        return nome;</span>
+    }
+
+    public void setNome(String nome) {
+<span class="fc" id="L105">        this.nome = nome;</span>
+<span class="fc" id="L106">    }</span>
+
+    public String getEmail() {
+<span class="fc" id="L109">        return email;</span>
+    }
+
+    public void setEmail(String email) {
+<span class="fc" id="L113">        this.email = email;</span>
+<span class="fc" id="L114">    }</span>
+
+    public String getCpf() {
+<span class="fc" id="L117">        return cpf;</span>
+    }
+
+    public void setCpf(String cpf) {
+<span class="fc" id="L121">        this.cpf = cpf;</span>
+<span class="fc" id="L122">    }</span>
+
+    public String getCargo() {
+<span class="fc" id="L125">        return cargo;</span>
+    }
+
+    public void setCargo(String cargo) {
+<span class="fc" id="L129">        this.cargo = cargo;</span>
+<span class="fc" id="L130">    }</span>
+
+    public FuncionarioStatus getStatus() {
+<span class="fc" id="L133">        return status;</span>
+    }
+
+    public void setStatus(FuncionarioStatus status) {
+<span class="fc" id="L137">        this.status = status;</span>
+<span class="fc" id="L138">    }</span>
+
+    public Departamento getDepartamento() {
+<span class="fc" id="L141">        return departamento;</span>
+    }
+
+    public void setDepartamento(Departamento departamento) {
+<span class="fc" id="L145">        this.departamento = departamento;</span>
+<span class="fc" id="L146">    }</span>
+
+    public Salario getSalario() {
+<span class="fc" id="L149">        return salario;</span>
+    }
+
+    public LocalDate getDataAdmissao() {
+<span class="fc" id="L153">        return dataAdmissao;</span>
+    }
+
+    public void setDataAdmissao(LocalDate dataAdmissao) {
+<span class="fc" id="L157">        this.dataAdmissao = dataAdmissao;</span>
+<span class="fc" id="L158">    }</span>
+
+    public LocalDate getDataDemissao() {
+<span class="fc" id="L161">        return dataDemissao;</span>
+    }
+
+    public void setDataDemissao(LocalDate dataDemissao) {
+<span class="fc" id="L165">        this.dataDemissao = dataDemissao;</span>
+<span class="fc" id="L166">    }</span>
+
+    public LocalDateTime getCriadoEm() {
+<span class="fc" id="L169">        return criadoEm;</span>
+    }
+
+    public LocalDateTime getAtualizadoEm() {
+<span class="fc" id="L173">        return atualizadoEm;</span>
+    }
+
+    @Override
+    public boolean equals(Object o) {
+<span class="pc bpc" id="L178" title="1 of 2 branches missed.">        if (this == o) {</span>
+<span class="nc" id="L179">            return true;</span>
+        }
+<span class="fc bfc" id="L181" title="All 2 branches covered.">        if (!(o instanceof Funcionario that)) {</span>
+<span class="fc" id="L182">            return false;</span>
+        }
+<span class="fc" id="L184">        return Objects.equals(id, that.id);</span>
+    }
+
+    @Override
+    public int hashCode() {
+<span class="fc" id="L189">        return Objects.hash(id);</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>FaultSimulationService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TP3 Performance CRUD Web</a> &gt; <a href="index.source.html" class="el_package">br.com.faculdade.tp3.service</a> &gt; <span class="el_source">FaultSimulationService.java</span></div><h1>FaultSimulationService.java</h1><pre class="source lang-java linenums">package br.com.faculdade.tp3.service;
+
+import br.com.faculdade.tp3.exception.EntradaInvalidaException;
+import br.com.faculdade.tp3.exception.SobrecargaSistemaException;
+import br.com.faculdade.tp3.exception.TimeoutServicoException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import org.springframework.stereotype.Service;
+
+@Service
+<span class="fc" id="L14">public class FaultSimulationService {</span>
+
+    private static final long MAX_DELAY_MS = 15_000;
+<span class="fc" id="L17">    private final Semaphore overloadGuard = new Semaphore(1);</span>
+
+    public String simularTimeout(long delayMs, long timeoutMs) {
+<span class="fc" id="L20">        validarDelay(delayMs);</span>
+<span class="fc" id="L21">        validarTimeout(timeoutMs);</span>
+
+<span class="fc" id="L23">        CompletableFuture&lt;String&gt; future = CompletableFuture.supplyAsync(() -&gt; {</span>
+<span class="fc" id="L24">            sleep(delayMs);</span>
+<span class="fc" id="L25">            return &quot;Processamento finalizado&quot;;</span>
+        });
+
+        try {
+<span class="fc" id="L29">            return future.get(timeoutMs, TimeUnit.MILLISECONDS);</span>
+<span class="fc" id="L30">        } catch (TimeoutException ex) {</span>
+<span class="fc" id="L31">            future.cancel(true);</span>
+<span class="fc" id="L32">            throw new TimeoutServicoException(&quot;Tempo limite excedido ao processar a operação.&quot;);</span>
+<span class="nc" id="L33">        } catch (InterruptedException ex) {</span>
+<span class="nc" id="L34">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L35">            throw new TimeoutServicoException(&quot;Processamento interrompido.&quot;);</span>
+<span class="nc" id="L36">        } catch (ExecutionException ex) {</span>
+<span class="nc" id="L37">            throw new RuntimeException(&quot;Erro inesperado durante processamento assíncrono.&quot;);</span>
+        }
+    }
+
+    public String simularSobrecarga(long holdMs) {
+<span class="fc" id="L42">        validarDelay(holdMs);</span>
+
+<span class="fc" id="L44">        boolean acquired = overloadGuard.tryAcquire();</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        if (!acquired) {</span>
+<span class="fc" id="L46">            throw new SobrecargaSistemaException(&quot;Sistema temporariamente sobrecarregado. Tente novamente em instantes.&quot;);</span>
+        }
+
+        try {
+<span class="fc" id="L50">            sleep(holdMs);</span>
+<span class="fc" id="L51">            return &quot;Requisição processada com sucesso&quot;;</span>
+        } finally {
+<span class="fc" id="L53">            overloadGuard.release();</span>
+        }
+    }
+
+    private void validarDelay(long delayMs) {
+<span class="pc bpc" id="L58" title="1 of 4 branches missed.">        if (delayMs &lt; 0 || delayMs &gt; MAX_DELAY_MS) {</span>
+<span class="fc" id="L59">            throw new EntradaInvalidaException(&quot;Parâmetro de delay inválido.&quot;);</span>
+        }
+<span class="fc" id="L61">    }</span>
+
+    private void validarTimeout(long timeoutMs) {
+<span class="pc bpc" id="L64" title="1 of 4 branches missed.">        if (timeoutMs &lt;= 0 || timeoutMs &gt; MAX_DELAY_MS) {</span>
+<span class="fc" id="L65">            throw new EntradaInvalidaException(&quot;Parâmetro de timeout inválido.&quot;);</span>
+        }
+<span class="fc" id="L67">    }</span>
+
+    private void sleep(long ms) {
+        try {
+<span class="fc" id="L71">            Thread.sleep(ms);</span>
+<span class="pc" id="L72">        } catch (InterruptedException ex) {</span>
+<span class="nc" id="L73">            Thread.currentThread().interrupt();</span>
+<span class="nc" id="L74">            throw new TimeoutServicoException(&quot;Processamento interrompido.&quot;);</span>
+        }
+<span class="fc" id="L76">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

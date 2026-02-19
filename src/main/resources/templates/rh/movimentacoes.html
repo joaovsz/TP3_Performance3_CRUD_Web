@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Histórico de Movimentações</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<main class="container">
+    <h1>Histórico de movimentações</h1>
+    <p>
+        Funcionário: <strong th:text="${funcionario.nome}"></strong>
+    </p>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+            <tr>
+                <th>Data</th>
+                <th>Tipo</th>
+                <th>Descrição</th>
+                <th>Salário anterior</th>
+                <th>Salário novo</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="mov : ${movimentacoes}">
+                <td th:text="${#temporals.format(mov.movimentadoEm, 'dd/MM/yyyy HH:mm:ss')}"></td>
+                <td th:text="${mov.tipo}"></td>
+                <td th:text="${mov.descricao}"></td>
+                <td th:text="${mov.salarioAnterior}"></td>
+                <td th:text="${mov.salarioNovo}"></td>
+            </tr>
+            <tr th:if="${#lists.isEmpty(movimentacoes)}">
+                <td colspan="5">Sem movimentações registradas.</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <a class="btn" th:href="@{/rh/funcionarios}">Voltar</a>
+</main>
+</body>
+</html>

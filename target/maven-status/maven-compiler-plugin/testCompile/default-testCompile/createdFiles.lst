@@ -1,0 +1,9 @@
+br/com/faculdade/tp3/unit/MiscCoverageTest.class
+br/com/faculdade/tp3/unit/Tp3PerformanceCrudWebApplicationTest.class
+br/com/faculdade/tp3/integration/RhApiControllerIntegrationTest.class
+br/com/faculdade/tp3/unit/RhServiceTest.class
+br/com/faculdade/tp3/fuzz/RhApiFuzzTest.class
+br/com/faculdade/tp3/selenium/FuncionarioWebSeleniumTest.class
+br/com/faculdade/tp3/unit/FaultSimulationServiceTest.class
+br/com/faculdade/tp3/unit/FuncionarioWebControllerTest.class
+br/com/faculdade/tp3/integration/FuncionarioRepositoryTest.class

@@ -1,0 +1,418 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>RhService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TP3 Performance CRUD Web</a> &gt; <a href="index.source.html" class="el_package">br.com.faculdade.tp3.service</a> &gt; <span class="el_source">RhService.java</span></div><h1>RhService.java</h1><pre class="source lang-java linenums"><span class="fc" id="L1">package br.com.faculdade.tp3.service;</span>
+
+import br.com.faculdade.tp3.dto.rh.AjusteSalarialPayload;
+import br.com.faculdade.tp3.dto.rh.DemissaoPayload;
+import br.com.faculdade.tp3.dto.rh.FuncionarioPayload;
+import br.com.faculdade.tp3.dto.rh.PromocaoPayload;
+import br.com.faculdade.tp3.exception.EntradaInvalidaException;
+import br.com.faculdade.tp3.exception.RecursoDuplicadoException;
+import br.com.faculdade.tp3.exception.RecursoNaoEncontradoException;
+import br.com.faculdade.tp3.model.Departamento;
+import br.com.faculdade.tp3.model.Funcionario;
+import br.com.faculdade.tp3.model.MovimentacaoRh;
+import br.com.faculdade.tp3.model.Salario;
+import br.com.faculdade.tp3.model.enums.FuncionarioStatus;
+import br.com.faculdade.tp3.model.enums.TipoMovimentacaoRh;
+import br.com.faculdade.tp3.repository.DepartamentoRepository;
+import br.com.faculdade.tp3.repository.FuncionarioRepository;
+import br.com.faculdade.tp3.repository.MovimentacaoRhRepository;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Locale;
+import java.util.regex.Pattern;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class RhService {
+
+<span class="fc" id="L32">    private static final Pattern CONTROL_PATTERN = Pattern.compile(&quot;.*[\\p{Cntrl}&amp;&amp;[^\\r\\n\\t]].*&quot;);</span>
+<span class="fc" id="L33">    private static final Pattern HUMAN_TEXT_PATTERN = Pattern.compile(&quot;^[\\p{L}0-9 .,'-]+$&quot;);</span>
+<span class="fc" id="L34">    private static final Pattern MALICIOUS_PATTERN = Pattern.compile(</span>
+<span class="fc" id="L35">            &quot;.*(&lt;|&gt;|\\{|\\}|\\$\\{|--|;|/\\*|\\*/|\\bselect\\b|\\binsert\\b|\\bdelete\\b|\\bdrop\\b).*&quot;,</span>
+<span class="fc" id="L36">            Pattern.CASE_INSENSITIVE</span>
+<span class="fc" id="L37">    );</span>
+
+    private final FuncionarioRepository funcionarioRepository;
+    private final DepartamentoRepository departamentoRepository;
+    private final MovimentacaoRhRepository movimentacaoRhRepository;
+
+<span class="fc" id="L43">    public RhService(</span>
+            FuncionarioRepository funcionarioRepository,
+            DepartamentoRepository departamentoRepository,
+            MovimentacaoRhRepository movimentacaoRhRepository
+    ) {
+<span class="fc" id="L48">        this.funcionarioRepository = funcionarioRepository;</span>
+<span class="fc" id="L49">        this.departamentoRepository = departamentoRepository;</span>
+<span class="fc" id="L50">        this.movimentacaoRhRepository = movimentacaoRhRepository;</span>
+<span class="fc" id="L51">    }</span>
+
+    @Transactional(readOnly = true)
+    public List&lt;Funcionario&gt; listarFuncionarios(String nome, Boolean somenteAtivos) {
+<span class="fc" id="L55">        FuncionarioStatus status = resolverStatus(somenteAtivos);</span>
+
+<span class="pc bpc" id="L57" title="1 of 4 branches missed.">        if (nome == null || nome.isBlank()) {</span>
+<span class="fc bfc" id="L58" title="All 2 branches covered.">            if (status == null) {</span>
+<span class="fc" id="L59">                return funcionarioRepository.findAllByOrderByNomeAsc();</span>
+            }
+<span class="fc" id="L61">            return funcionarioRepository.findByStatusOrderByNomeAsc(status);</span>
+        }
+
+<span class="fc" id="L64">        String termo = sanitizarTextoHumano(nome, &quot;Filtro de nome&quot;, false, 1, 120);</span>
+<span class="pc bpc" id="L65" title="1 of 2 branches missed.">        if (status == null) {</span>
+<span class="fc" id="L66">            return funcionarioRepository.findByNomeContainingIgnoreCaseOrderByNomeAsc(termo);</span>
+        }
+<span class="nc" id="L68">        return funcionarioRepository.findByNomeContainingIgnoreCaseAndStatusOrderByNomeAsc(termo, status);</span>
+    }
+
+    @Transactional(readOnly = true)
+    public Funcionario buscarFuncionario(Long id) {
+<span class="fc" id="L73">        validarId(id);</span>
+<span class="fc" id="L74">        return funcionarioRepository.findById(id)</span>
+<span class="pc" id="L75">                .orElseThrow(() -&gt; new RecursoNaoEncontradoException(&quot;Funcionário não encontrado.&quot;));</span>
+    }
+
+    @Transactional(readOnly = true)
+    public List&lt;MovimentacaoRh&gt; listarMovimentacoes(Long funcionarioId) {
+<span class="fc" id="L80">        validarId(funcionarioId);</span>
+<span class="fc" id="L81">        return movimentacaoRhRepository.findByFuncionarioIdOrderByMovimentadoEmDesc(funcionarioId);</span>
+    }
+
+    @Transactional(readOnly = true)
+    public List&lt;Departamento&gt; listarDepartamentos() {
+<span class="fc" id="L86">        return departamentoRepository.findAllByOrderByNomeAsc();</span>
+    }
+
+    @Transactional
+    public Funcionario contratar(FuncionarioPayload payload) {
+<span class="fc" id="L91">        EntradaFuncionario entrada = normalizarFuncionario(payload, null, true);</span>
+<span class="fc" id="L92">        validarChavesUnicas(entrada.email(), entrada.cpf(), null);</span>
+<span class="fc" id="L93">        Departamento departamento = buscarDepartamento(entrada.departamentoId());</span>
+
+<span class="fc" id="L95">        Funcionario funcionario = new Funcionario();</span>
+<span class="fc" id="L96">        funcionario.setNome(entrada.nome());</span>
+<span class="fc" id="L97">        funcionario.setEmail(entrada.email());</span>
+<span class="fc" id="L98">        funcionario.setCpf(entrada.cpf());</span>
+<span class="fc" id="L99">        funcionario.setCargo(entrada.cargo());</span>
+<span class="fc" id="L100">        funcionario.setDepartamento(departamento);</span>
+<span class="fc" id="L101">        funcionario.setStatus(FuncionarioStatus.ATIVO);</span>
+<span class="fc" id="L102">        funcionario.setDataAdmissao(LocalDate.now());</span>
+
+<span class="fc" id="L104">        Salario salario = new Salario();</span>
+<span class="fc" id="L105">        salario.setValorAtual(entrada.salario());</span>
+<span class="fc" id="L106">        funcionario.definirSalario(salario);</span>
+
+<span class="fc" id="L108">        Funcionario salvo = salvarComTratamento(funcionario);</span>
+<span class="fc" id="L109">        registrarMovimentacao(</span>
+<span class="fc" id="L110">                salvo,</span>
+<span class="fc" id="L111">                TipoMovimentacaoRh.CONTRATACAO,</span>
+<span class="fc" id="L112">                &quot;Contratação realizada&quot;,</span>
+<span class="fc" id="L113">                null,</span>
+<span class="fc" id="L114">                entrada.salario()</span>
+        );
+<span class="fc" id="L116">        return salvo;</span>
+    }
+
+    @Transactional
+    public Funcionario atualizarCadastro(Long id, FuncionarioPayload payload) {
+<span class="fc" id="L121">        validarId(id);</span>
+<span class="fc" id="L122">        EntradaFuncionario entrada = normalizarFuncionario(payload, id, false);</span>
+
+<span class="fc" id="L124">        Funcionario funcionario = buscarFuncionario(id);</span>
+<span class="fc" id="L125">        validarChavesUnicas(entrada.email(), entrada.cpf(), id);</span>
+
+<span class="fc" id="L127">        funcionario.setNome(entrada.nome());</span>
+<span class="fc" id="L128">        funcionario.setEmail(entrada.email());</span>
+<span class="fc" id="L129">        funcionario.setCpf(entrada.cpf());</span>
+<span class="fc" id="L130">        funcionario.setCargo(entrada.cargo());</span>
+<span class="fc" id="L131">        funcionario.setDepartamento(buscarDepartamento(entrada.departamentoId()));</span>
+
+<span class="fc" id="L133">        Funcionario salvo = salvarComTratamento(funcionario);</span>
+<span class="fc" id="L134">        registrarMovimentacao(</span>
+<span class="fc" id="L135">                salvo,</span>
+<span class="fc" id="L136">                TipoMovimentacaoRh.ATUALIZACAO_CADASTRAL,</span>
+<span class="fc" id="L137">                &quot;Atualização cadastral&quot;,</span>
+<span class="fc" id="L138">                salvo.getSalario().getValorAtual(),</span>
+<span class="fc" id="L139">                salvo.getSalario().getValorAtual()</span>
+        );
+<span class="fc" id="L141">        return salvo;</span>
+    }
+
+    @Transactional
+    public Funcionario aumentarSalario(Long id, AjusteSalarialPayload payload) {
+<span class="fc" id="L146">        validarId(id);</span>
+<span class="pc bpc" id="L147" title="1 of 2 branches missed.">        if (payload == null) {</span>
+<span class="nc" id="L148">            throw new EntradaInvalidaException(&quot;Dados de aumento salarial são obrigatórios.&quot;);</span>
+        }
+
+<span class="fc" id="L151">        BigDecimal percentual = validarPercentual(payload.getPercentual(), &quot;Percentual de aumento&quot;);</span>
+<span class="fc" id="L152">        String motivo = sanitizarTexto(payload.getMotivo(), &quot;Motivo&quot;, true, 5, 255);</span>
+
+<span class="fc" id="L154">        Funcionario funcionario = buscarFuncionario(id);</span>
+<span class="fc" id="L155">        validarFuncionarioAtivo(funcionario);</span>
+
+<span class="fc" id="L157">        BigDecimal salarioAnterior = funcionario.getSalario().getValorAtual();</span>
+<span class="fc" id="L158">        BigDecimal fator = percentual.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP);</span>
+<span class="fc" id="L159">        BigDecimal salarioNovo = salarioAnterior</span>
+<span class="fc" id="L160">                .multiply(BigDecimal.ONE.add(fator))</span>
+<span class="fc" id="L161">                .setScale(2, RoundingMode.HALF_UP);</span>
+
+<span class="fc" id="L163">        funcionario.getSalario().setValorAtual(salarioNovo);</span>
+<span class="fc" id="L164">        Funcionario salvo = salvarComTratamento(funcionario);</span>
+
+<span class="fc" id="L166">        registrarMovimentacao(</span>
+<span class="fc" id="L167">                salvo,</span>
+<span class="fc" id="L168">                TipoMovimentacaoRh.AUMENTO_SALARIAL,</span>
+<span class="fc" id="L169">                &quot;Aumento salarial: &quot; + motivo,</span>
+<span class="fc" id="L170">                salarioAnterior,</span>
+<span class="fc" id="L171">                salarioNovo</span>
+        );
+<span class="fc" id="L173">        return salvo;</span>
+    }
+
+    @Transactional
+    public Funcionario promover(Long id, PromocaoPayload payload) {
+<span class="fc" id="L178">        validarId(id);</span>
+<span class="pc bpc" id="L179" title="1 of 2 branches missed.">        if (payload == null) {</span>
+<span class="nc" id="L180">            throw new EntradaInvalidaException(&quot;Dados de promoção são obrigatórios.&quot;);</span>
+        }
+
+<span class="fc" id="L183">        String novoCargo = sanitizarTextoHumano(payload.getNovoCargo(), &quot;Novo cargo&quot;, true, 2, 100);</span>
+<span class="fc" id="L184">        String motivo = sanitizarTexto(payload.getMotivo(), &quot;Motivo&quot;, true, 5, 255);</span>
+<span class="fc" id="L185">        BigDecimal percentual = validarPercentual(payload.getPercentualAumento(), &quot;Percentual da promoção&quot;);</span>
+
+<span class="fc" id="L187">        Funcionario funcionario = buscarFuncionario(id);</span>
+<span class="fc" id="L188">        validarFuncionarioAtivo(funcionario);</span>
+
+<span class="fc" id="L190">        BigDecimal salarioAnterior = funcionario.getSalario().getValorAtual();</span>
+<span class="fc" id="L191">        BigDecimal fator = percentual.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP);</span>
+<span class="fc" id="L192">        BigDecimal salarioNovo = salarioAnterior</span>
+<span class="fc" id="L193">                .multiply(BigDecimal.ONE.add(fator))</span>
+<span class="fc" id="L194">                .setScale(2, RoundingMode.HALF_UP);</span>
+
+<span class="fc" id="L196">        funcionario.setCargo(novoCargo);</span>
+<span class="fc" id="L197">        funcionario.getSalario().setValorAtual(salarioNovo);</span>
+
+<span class="fc" id="L199">        Funcionario salvo = salvarComTratamento(funcionario);</span>
+<span class="fc" id="L200">        registrarMovimentacao(</span>
+<span class="fc" id="L201">                salvo,</span>
+<span class="fc" id="L202">                TipoMovimentacaoRh.PROMOCAO,</span>
+<span class="fc" id="L203">                &quot;Promoção: &quot; + motivo,</span>
+<span class="fc" id="L204">                salarioAnterior,</span>
+<span class="fc" id="L205">                salarioNovo</span>
+        );
+<span class="fc" id="L207">        return salvo;</span>
+    }
+
+    @Transactional
+    public Funcionario demitir(Long id, DemissaoPayload payload) {
+<span class="fc" id="L212">        validarId(id);</span>
+<span class="pc bpc" id="L213" title="1 of 2 branches missed.">        if (payload == null) {</span>
+<span class="nc" id="L214">            throw new EntradaInvalidaException(&quot;Dados de demissão são obrigatórios.&quot;);</span>
+        }
+
+<span class="fc" id="L217">        String motivo = sanitizarTexto(payload.getMotivo(), &quot;Motivo da demissão&quot;, true, 5, 255);</span>
+
+<span class="fc" id="L219">        Funcionario funcionario = buscarFuncionario(id);</span>
+<span class="fc bfc" id="L220" title="All 2 branches covered.">        if (funcionario.getStatus() == FuncionarioStatus.INATIVO) {</span>
+<span class="fc" id="L221">            throw new EntradaInvalidaException(&quot;Funcionário já está inativo.&quot;);</span>
+        }
+
+<span class="fc" id="L224">        funcionario.setStatus(FuncionarioStatus.INATIVO);</span>
+<span class="fc" id="L225">        funcionario.setDataDemissao(LocalDate.now());</span>
+
+<span class="fc" id="L227">        Funcionario salvo = salvarComTratamento(funcionario);</span>
+<span class="fc" id="L228">        BigDecimal salarioAtual = salvo.getSalario().getValorAtual();</span>
+<span class="fc" id="L229">        registrarMovimentacao(</span>
+<span class="fc" id="L230">                salvo,</span>
+<span class="fc" id="L231">                TipoMovimentacaoRh.DEMISSAO,</span>
+<span class="fc" id="L232">                &quot;Demissão: &quot; + motivo,</span>
+<span class="fc" id="L233">                salarioAtual,</span>
+<span class="fc" id="L234">                salarioAtual</span>
+        );
+<span class="fc" id="L236">        return salvo;</span>
+    }
+
+    @Transactional
+    public void excluirDefinitivamente(Long id) {
+<span class="nc" id="L241">        Funcionario funcionario = buscarFuncionario(id);</span>
+<span class="nc" id="L242">        movimentacaoRhRepository.deleteByFuncionarioId(id);</span>
+<span class="nc" id="L243">        funcionarioRepository.delete(funcionario);</span>
+<span class="nc" id="L244">    }</span>
+
+    private void validarChavesUnicas(String email, String cpf, Long idAtual) {
+<span class="fc" id="L247">        funcionarioRepository.findByEmailIgnoreCase(email).ifPresent(existente -&gt; {</span>
+<span class="fc bfc" id="L248" title="All 2 branches covered.">            if (!existente.getId().equals(idAtual)) {</span>
+<span class="fc" id="L249">                throw new RecursoDuplicadoException(&quot;Já existe funcionário com o email informado.&quot;);</span>
+            }
+<span class="fc" id="L251">        });</span>
+
+<span class="fc" id="L253">        funcionarioRepository.findByCpf(cpf).ifPresent(existente -&gt; {</span>
+<span class="pc bpc" id="L254" title="1 of 2 branches missed.">            if (!existente.getId().equals(idAtual)) {</span>
+<span class="nc" id="L255">                throw new RecursoDuplicadoException(&quot;Já existe funcionário com o CPF informado.&quot;);</span>
+            }
+<span class="fc" id="L257">        });</span>
+<span class="fc" id="L258">    }</span>
+
+    private Departamento buscarDepartamento(Long id) {
+<span class="fc" id="L261">        validarId(id);</span>
+<span class="fc" id="L262">        return departamentoRepository.findById(id)</span>
+<span class="pc" id="L263">                .orElseThrow(() -&gt; new RecursoNaoEncontradoException(&quot;Departamento não encontrado.&quot;));</span>
+    }
+
+    private Funcionario salvarComTratamento(Funcionario funcionario) {
+        try {
+<span class="fc" id="L268">            return funcionarioRepository.save(funcionario);</span>
+<span class="nc" id="L269">        } catch (DataIntegrityViolationException ex) {</span>
+<span class="nc" id="L270">            throw new RecursoDuplicadoException(&quot;Violação de integridade de dados no cadastro do funcionário.&quot;);</span>
+        }
+    }
+
+    private void registrarMovimentacao(
+            Funcionario funcionario,
+            TipoMovimentacaoRh tipo,
+            String descricao,
+            BigDecimal salarioAnterior,
+            BigDecimal salarioNovo
+    ) {
+<span class="fc" id="L281">        MovimentacaoRh movimentacao = new MovimentacaoRh();</span>
+<span class="fc" id="L282">        movimentacao.setFuncionario(funcionario);</span>
+<span class="fc" id="L283">        movimentacao.setTipo(tipo);</span>
+<span class="fc" id="L284">        movimentacao.setDescricao(descricao);</span>
+<span class="fc" id="L285">        movimentacao.setSalarioAnterior(salarioAnterior);</span>
+<span class="fc" id="L286">        movimentacao.setSalarioNovo(salarioNovo);</span>
+<span class="fc" id="L287">        movimentacaoRhRepository.save(movimentacao);</span>
+<span class="fc" id="L288">    }</span>
+
+    private FuncionarioStatus resolverStatus(Boolean somenteAtivos) {
+<span class="fc bfc" id="L291" title="All 2 branches covered.">        if (somenteAtivos == null) {</span>
+<span class="fc" id="L292">            return null;</span>
+        }
+<span class="pc bpc" id="L294" title="1 of 2 branches missed.">        return somenteAtivos ? FuncionarioStatus.ATIVO : FuncionarioStatus.INATIVO;</span>
+    }
+
+    private void validarFuncionarioAtivo(Funcionario funcionario) {
+<span class="fc bfc" id="L298" title="All 2 branches covered.">        if (funcionario.getStatus() != FuncionarioStatus.ATIVO) {</span>
+<span class="fc" id="L299">            throw new EntradaInvalidaException(&quot;Operação permitida apenas para funcionários ativos.&quot;);</span>
+        }
+<span class="fc" id="L301">    }</span>
+
+    private void validarId(Long id) {
+<span class="pc bpc" id="L304" title="2 of 4 branches missed.">        if (id == null || id &lt;= 0) {</span>
+<span class="nc" id="L305">            throw new EntradaInvalidaException(&quot;ID inválido. Informe um valor positivo.&quot;);</span>
+        }
+<span class="fc" id="L307">    }</span>
+
+    private EntradaFuncionario normalizarFuncionario(FuncionarioPayload payload, Long idRota, boolean contratar) {
+<span class="pc bpc" id="L310" title="1 of 2 branches missed.">        if (payload == null) {</span>
+<span class="nc" id="L311">            throw new EntradaInvalidaException(&quot;Dados do funcionário são obrigatórios.&quot;);</span>
+        }
+
+<span class="fc bfc" id="L314" title="All 6 branches covered.">        if (idRota != null &amp;&amp; payload.getId() != null &amp;&amp; !idRota.equals(payload.getId())) {</span>
+<span class="fc" id="L315">            throw new EntradaInvalidaException(&quot;ID do corpo não confere com o ID da rota.&quot;);</span>
+        }
+
+<span class="fc" id="L318">        String nome = sanitizarTextoHumano(payload.getNome(), &quot;Nome&quot;, true, 3, 120);</span>
+<span class="fc" id="L319">        String email = sanitizarEmail(payload.getEmail());</span>
+<span class="fc" id="L320">        String cpf = sanitizarCpf(payload.getCpf());</span>
+<span class="fc" id="L321">        String cargo = sanitizarTextoHumano(payload.getCargo(), &quot;Cargo&quot;, true, 2, 100);</span>
+<span class="fc" id="L322">        Long departamentoId = payload.getDepartamentoId();</span>
+<span class="pc bpc" id="L323" title="1 of 2 branches missed.">        if (departamentoId == null) {</span>
+<span class="nc" id="L324">            throw new EntradaInvalidaException(&quot;Departamento é obrigatório.&quot;);</span>
+        }
+
+<span class="fc" id="L327">        BigDecimal salario = null;</span>
+<span class="fc bfc" id="L328" title="All 2 branches covered.">        if (contratar) {</span>
+<span class="fc" id="L329">            salario = sanitizarSalario(payload.getSalarioInicial(), &quot;Salário inicial&quot;);</span>
+        }
+
+<span class="fc" id="L332">        return new EntradaFuncionario(nome, email, cpf, cargo, departamentoId, salario);</span>
+    }
+
+    private String sanitizarTexto(String valor, String campo, boolean obrigatorio, int min, int max) {
+<span class="pc bpc" id="L336" title="1 of 2 branches missed.">        if (valor == null) {</span>
+<span class="nc bnc" id="L337" title="All 2 branches missed.">            if (obrigatorio) {</span>
+<span class="nc" id="L338">                throw new EntradaInvalidaException(campo + &quot; é obrigatório.&quot;);</span>
+            }
+<span class="nc" id="L340">            return &quot;&quot;;</span>
+        }
+
+<span class="fc" id="L343">        String normalizado = valor.trim();</span>
+<span class="pc bpc" id="L344" title="1 of 4 branches missed.">        if (obrigatorio &amp;&amp; normalizado.isEmpty()) {</span>
+<span class="nc" id="L345">            throw new EntradaInvalidaException(campo + &quot; é obrigatório.&quot;);</span>
+        }
+
+<span class="pc bpc" id="L348" title="2 of 6 branches missed.">        if (!normalizado.isEmpty() &amp;&amp; (normalizado.length() &lt; min || normalizado.length() &gt; max)) {</span>
+<span class="fc" id="L349">            throw new EntradaInvalidaException(campo + &quot; deve ter entre &quot; + min + &quot; e &quot; + max + &quot; caracteres.&quot;);</span>
+        }
+
+<span class="pc bpc" id="L352" title="1 of 2 branches missed.">        if (CONTROL_PATTERN.matcher(normalizado).matches()) {</span>
+<span class="nc" id="L353">            throw new EntradaInvalidaException(campo + &quot; contém caracteres inválidos.&quot;);</span>
+        }
+
+<span class="fc bfc" id="L356" title="All 2 branches covered.">        if (MALICIOUS_PATTERN.matcher(normalizado).matches()) {</span>
+<span class="fc" id="L357">            throw new EntradaInvalidaException(campo + &quot; contém conteúdo potencialmente malicioso.&quot;);</span>
+        }
+
+<span class="fc" id="L360">        return normalizado;</span>
+    }
+
+    private String sanitizarTextoHumano(String valor, String campo, boolean obrigatorio, int min, int max) {
+<span class="fc" id="L364">        String normalizado = sanitizarTexto(valor, campo, obrigatorio, min, max);</span>
+<span class="pc bpc" id="L365" title="1 of 4 branches missed.">        if (!normalizado.isEmpty() &amp;&amp; !HUMAN_TEXT_PATTERN.matcher(normalizado).matches()) {</span>
+<span class="fc" id="L366">            throw new EntradaInvalidaException(campo + &quot; contém caracteres não permitidos.&quot;);</span>
+        }
+<span class="fc" id="L368">        return normalizado;</span>
+    }
+
+    private String sanitizarEmail(String email) {
+<span class="fc" id="L372">        String normalizado = sanitizarTexto(email, &quot;Email&quot;, true, 5, 160).toLowerCase(Locale.ROOT);</span>
+<span class="pc bpc" id="L373" title="3 of 6 branches missed.">        if (!normalizado.contains(&quot;@&quot;) || normalizado.startsWith(&quot;@&quot;) || normalizado.endsWith(&quot;@&quot;)) {</span>
+<span class="nc" id="L374">            throw new EntradaInvalidaException(&quot;Email inválido.&quot;);</span>
+        }
+<span class="fc" id="L376">        return normalizado;</span>
+    }
+
+    private String sanitizarCpf(String cpf) {
+<span class="fc" id="L380">        String normalizado = sanitizarTexto(cpf, &quot;CPF&quot;, true, 11, 11);</span>
+<span class="pc bpc" id="L381" title="1 of 2 branches missed.">        if (!normalizado.matches(&quot;^[0-9]{11}$&quot;)) {</span>
+<span class="nc" id="L382">            throw new EntradaInvalidaException(&quot;CPF deve conter exatamente 11 dígitos.&quot;);</span>
+        }
+<span class="fc" id="L384">        return normalizado;</span>
+    }
+
+    private BigDecimal sanitizarSalario(BigDecimal salario, String campo) {
+<span class="pc bpc" id="L388" title="1 of 2 branches missed.">        if (salario == null) {</span>
+<span class="nc" id="L389">            throw new EntradaInvalidaException(campo + &quot; é obrigatório.&quot;);</span>
+        }
+<span class="pc bpc" id="L391" title="1 of 2 branches missed.">        if (salario.scale() &gt; 2) {</span>
+<span class="nc" id="L392">            throw new EntradaInvalidaException(campo + &quot; deve ter no máximo 2 casas decimais.&quot;);</span>
+        }
+<span class="pc bpc" id="L394" title="1 of 2 branches missed.">        if (salario.signum() &lt; 0) {</span>
+<span class="nc" id="L395">            throw new EntradaInvalidaException(campo + &quot; não pode ser negativo.&quot;);</span>
+        }
+<span class="fc" id="L397">        return salario.setScale(2, RoundingMode.HALF_UP);</span>
+    }
+
+    private BigDecimal validarPercentual(BigDecimal percentual, String campo) {
+<span class="fc" id="L401">        BigDecimal valor = sanitizarSalario(percentual, campo);</span>
+<span class="pc bpc" id="L402" title="2 of 4 branches missed.">        if (valor.compareTo(BigDecimal.ZERO) &lt;= 0 || valor.compareTo(BigDecimal.valueOf(300)) &gt; 0) {</span>
+<span class="nc" id="L403">            throw new EntradaInvalidaException(campo + &quot; deve estar entre 0.01 e 300.00.&quot;);</span>
+        }
+<span class="fc" id="L405">        return valor;</span>
+    }
+
+    private record EntradaFuncionario(
+            String nome,
+            String email,
+            String cpf,
+            String cargo,
+            Long departamentoId,
+            BigDecimal salario
+    ) {
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

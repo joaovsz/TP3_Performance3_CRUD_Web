@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aumento Salarial</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<main class="container narrow">
+    <h1>Aumentar salário</h1>
+    <p><strong th:text="${funcionario.nome}"></strong> - salário atual: <span th:text="${funcionario.salario.valorAtual}"></span></p>
+
+    <form class="stack-form" th:action="@{|/rh/funcionarios/${funcionario.id}/aumento|}" th:object="${payload}" method="post">
+        <label for="percentual">Percentual (%)</label>
+        <input id="percentual" th:field="*{percentual}" type="number" step="0.01" min="0.01" required>
+        <small class="error" th:if="${#fields.hasErrors('percentual')}" th:errors="*{percentual}"></small>
+
+        <label for="motivo">Motivo</label>
+        <input id="motivo" th:field="*{motivo}" type="text" required>
+        <small class="error" th:if="${#fields.hasErrors('motivo')}" th:errors="*{motivo}"></small>
+
+        <div class="actions-row">
+            <button class="btn btn-primary" type="submit">Aplicar</button>
+            <a class="btn" th:href="@{/rh/funcionarios}">Voltar</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

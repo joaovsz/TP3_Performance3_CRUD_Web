@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Promoção</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<main class="container narrow">
+    <h1>Promover funcionário</h1>
+    <p><strong th:text="${funcionario.nome}"></strong> - cargo atual: <span th:text="${funcionario.cargo}"></span></p>
+
+    <form class="stack-form" th:action="@{|/rh/funcionarios/${funcionario.id}/promocao|}" th:object="${payload}" method="post">
+        <label for="novoCargo">Novo cargo</label>
+        <input id="novoCargo" th:field="*{novoCargo}" type="text" required>
+        <small class="error" th:if="${#fields.hasErrors('novoCargo')}" th:errors="*{novoCargo}"></small>
+
+        <label for="percentualAumento">Percentual de aumento (%)</label>
+        <input id="percentualAumento" th:field="*{percentualAumento}" type="number" step="0.01" min="0" required>
+        <small class="error" th:if="${#fields.hasErrors('percentualAumento')}" th:errors="*{percentualAumento}"></small>
+
+        <label for="motivo">Motivo</label>
+        <input id="motivo" th:field="*{motivo}" type="text" required>
+        <small class="error" th:if="${#fields.hasErrors('motivo')}" th:errors="*{motivo}"></small>
+
+        <div class="actions-row">
+            <button class="btn btn-primary" type="submit">Aplicar promoção</button>
+            <a class="btn" th:href="@{/rh/funcionarios}">Voltar</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>
