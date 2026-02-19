@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ApiExceptionHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TP3 Performance CRUD Web</a> &gt; <a href="index.source.html" class="el_package">br.com.faculdade.tp3.controller</a> &gt; <span class="el_source">ApiExceptionHandler.java</span></div><h1>ApiExceptionHandler.java</h1><pre class="source lang-java linenums">package br.com.faculdade.tp3.controller;
 
 import br.com.faculdade.tp3.dto.ApiErrorResponse;
+import br.com.faculdade.tp3.controller.rh.DiagnosticoApiController;
+import br.com.faculdade.tp3.controller.rh.RhApiController;
 import br.com.faculdade.tp3.exception.EntradaInvalidaException;
 import br.com.faculdade.tp3.exception.RecursoDuplicadoException;
 import br.com.faculdade.tp3.exception.RecursoNaoEncontradoException;
@@ -17,69 +19,69 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestControllerAdvice(basePackages = &quot;br.com.faculdade.tp3.controller.rh&quot;)
-<span class="fc" id="L21">public class ApiExceptionHandler {</span>
+@RestControllerAdvice(assignableTypes = {RhApiController.class, DiagnosticoApiController.class})
+<span class="fc" id="L23">public class ApiExceptionHandler {</span>
 
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ResponseEntity&lt;ApiErrorResponse&gt; handleNotFound(RecursoNaoEncontradoException ex, HttpServletRequest request) {
-<span class="nc" id="L25">        return build(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI());</span>
+<span class="nc" id="L27">        return build(HttpStatus.NOT_FOUND, ex.getMessage(), request.getRequestURI());</span>
     }
 
     @ExceptionHandler(RecursoDuplicadoException.class)
     public ResponseEntity&lt;ApiErrorResponse&gt; handleConflict(RecursoDuplicadoException ex, HttpServletRequest request) {
-<span class="nc" id="L30">        return build(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI());</span>
+<span class="nc" id="L32">        return build(HttpStatus.CONFLICT, ex.getMessage(), request.getRequestURI());</span>
     }
 
     @ExceptionHandler({EntradaInvalidaException.class, IllegalArgumentException.class})
     public ResponseEntity&lt;ApiErrorResponse&gt; handleBadRequest(RuntimeException ex, HttpServletRequest request) {
-<span class="fc" id="L35">        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request.getRequestURI());</span>
+<span class="fc" id="L37">        return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request.getRequestURI());</span>
     }
 
     @ExceptionHandler(TimeoutServicoException.class)
     public ResponseEntity&lt;ApiErrorResponse&gt; handleTimeout(TimeoutServicoException ex, HttpServletRequest request) {
-<span class="fc" id="L40">        return build(HttpStatus.GATEWAY_TIMEOUT, ex.getMessage(), request.getRequestURI());</span>
+<span class="fc" id="L42">        return build(HttpStatus.GATEWAY_TIMEOUT, ex.getMessage(), request.getRequestURI());</span>
     }
 
     @ExceptionHandler(SobrecargaSistemaException.class)
     public ResponseEntity&lt;ApiErrorResponse&gt; handleOverload(SobrecargaSistemaException ex, HttpServletRequest request) {
-<span class="fc" id="L45">        return build(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), request.getRequestURI());</span>
+<span class="fc" id="L47">        return build(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage(), request.getRequestURI());</span>
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity&lt;Map&lt;String, Object&gt;&gt; handleValidation(MethodArgumentNotValidException ex, HttpServletRequest request) {
-<span class="fc" id="L50">        Map&lt;String, String&gt; errosCampos = new LinkedHashMap&lt;&gt;();</span>
-<span class="fc" id="L51">        ex.getBindingResult().getAllErrors().forEach(error -&gt; {</span>
-<span class="fc" id="L52">            String nomeCampo = ((FieldError) error).getField();</span>
-<span class="fc" id="L53">            errosCampos.put(nomeCampo, error.getDefaultMessage());</span>
-<span class="fc" id="L54">        });</span>
+<span class="fc" id="L52">        Map&lt;String, String&gt; errosCampos = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L53">        ex.getBindingResult().getAllErrors().forEach(error -&gt; {</span>
+<span class="fc" id="L54">            String nomeCampo = ((FieldError) error).getField();</span>
+<span class="fc" id="L55">            errosCampos.put(nomeCampo, error.getDefaultMessage());</span>
+<span class="fc" id="L56">        });</span>
 
-<span class="fc" id="L56">        Map&lt;String, Object&gt; body = new LinkedHashMap&lt;&gt;();</span>
-<span class="fc" id="L57">        body.put(&quot;timestamp&quot;, LocalDateTime.now());</span>
-<span class="fc" id="L58">        body.put(&quot;status&quot;, HttpStatus.BAD_REQUEST.value());</span>
-<span class="fc" id="L59">        body.put(&quot;error&quot;, &quot;Bad Request&quot;);</span>
-<span class="fc" id="L60">        body.put(&quot;message&quot;, &quot;Dados inválidos&quot;);</span>
-<span class="fc" id="L61">        body.put(&quot;path&quot;, request.getRequestURI());</span>
-<span class="fc" id="L62">        body.put(&quot;fields&quot;, errosCampos);</span>
+<span class="fc" id="L58">        Map&lt;String, Object&gt; body = new LinkedHashMap&lt;&gt;();</span>
+<span class="fc" id="L59">        body.put(&quot;timestamp&quot;, LocalDateTime.now());</span>
+<span class="fc" id="L60">        body.put(&quot;status&quot;, HttpStatus.BAD_REQUEST.value());</span>
+<span class="fc" id="L61">        body.put(&quot;error&quot;, &quot;Bad Request&quot;);</span>
+<span class="fc" id="L62">        body.put(&quot;message&quot;, &quot;Dados inválidos&quot;);</span>
+<span class="fc" id="L63">        body.put(&quot;path&quot;, request.getRequestURI());</span>
+<span class="fc" id="L64">        body.put(&quot;fields&quot;, errosCampos);</span>
 
-<span class="fc" id="L64">        return ResponseEntity.badRequest().body(body);</span>
+<span class="fc" id="L66">        return ResponseEntity.badRequest().body(body);</span>
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity&lt;ApiErrorResponse&gt; handleGeneric(Exception ex, HttpServletRequest request) {
-<span class="nc" id="L69">        return build(HttpStatus.INTERNAL_SERVER_ERROR,</span>
-<span class="nc" id="L70">                &quot;Erro interno no servidor. Tente novamente mais tarde.&quot;,</span>
-<span class="nc" id="L71">                request.getRequestURI());</span>
+<span class="nc" id="L71">        return build(HttpStatus.INTERNAL_SERVER_ERROR,</span>
+<span class="nc" id="L72">                &quot;Erro interno no servidor. Tente novamente mais tarde.&quot;,</span>
+<span class="nc" id="L73">                request.getRequestURI());</span>
     }
 
     private ResponseEntity&lt;ApiErrorResponse&gt; build(HttpStatus status, String message, String path) {
-<span class="fc" id="L75">        ApiErrorResponse body = new ApiErrorResponse(</span>
-<span class="fc" id="L76">                LocalDateTime.now(),</span>
-<span class="fc" id="L77">                status.value(),</span>
-<span class="fc" id="L78">                status.getReasonPhrase(),</span>
-<span class="fc" id="L79">                message,</span>
-<span class="fc" id="L80">                path</span>
+<span class="fc" id="L77">        ApiErrorResponse body = new ApiErrorResponse(</span>
+<span class="fc" id="L78">                LocalDateTime.now(),</span>
+<span class="fc" id="L79">                status.value(),</span>
+<span class="fc" id="L80">                status.getReasonPhrase(),</span>
+<span class="fc" id="L81">                message,</span>
+<span class="fc" id="L82">                path</span>
         );
-<span class="fc" id="L82">        return ResponseEntity.status(status).body(body);</span>
+<span class="fc" id="L84">        return ResponseEntity.status(status).body(body);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

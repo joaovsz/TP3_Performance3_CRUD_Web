@@ -8,8 +8,8 @@ TP3 Performance CRUD Web,br.com.faculdade.tp3.exception,RecursoNaoEncontradoExce
 TP3 Performance CRUD Web,br.com.faculdade.tp3.exception,RecursoDuplicadoException,0,4,0,0,0,2,0,1,0,1
 TP3 Performance CRUD Web,br.com.faculdade.tp3.exception,EntradaInvalidaException,0,4,0,0,0,2,0,1,0,1
 TP3 Performance CRUD Web,br.com.faculdade.tp3.exception,TimeoutServicoException,0,4,0,0,0,2,0,1,0,1
-TP3 Performance CRUD Web,br.com.faculdade.tp3.config,BootstrapDataConfig,0,44,1,1,0,8,1,3,0,3
-TP3 Performance CRUD Web,br.com.faculdade.tp3.controller.rh,FuncionarioWebController,1,296,1,11,0,65,1,17,0,12
+TP3 Performance CRUD Web,br.com.faculdade.tp3.config,BootstrapDataConfig,8,160,6,6,2,62,7,5,1,5
+TP3 Performance CRUD Web,br.com.faculdade.tp3.controller.rh,FuncionarioWebController,0,295,0,12,0,68,0,19,0,13
 TP3 Performance CRUD Web,br.com.faculdade.tp3.controller.rh,RhApiController,18,57,0,0,4,11,3,8,3,8
 TP3 Performance CRUD Web,br.com.faculdade.tp3.controller.rh,DiagnosticoApiController,11,16,0,0,2,5,1,2,1,2
 TP3 Performance CRUD Web,br.com.faculdade.tp3.controller,HomeController,0,5,0,0,0,2,0,2,0,2
@@ -17,7 +17,7 @@ TP3 Performance CRUD Web,br.com.faculdade.tp3.controller,WebExceptionHandler,0,1
 TP3 Performance CRUD Web,br.com.faculdade.tp3.controller,ApiExceptionHandler,23,105,0,0,5,24,3,7,3,7
 TP3 Performance CRUD Web,br.com.faculdade.tp3.dto,ApiErrorResponse,0,18,0,0,0,1,0,1,0,1
 TP3 Performance CRUD Web,br.com.faculdade.tp3.service,FaultSimulationService,22,95,2,8,7,27,2,10,0,7
-TP3 Performance CRUD Web,br.com.faculdade.tp3.service,RhService,127,716,28,54,25,190,30,41,3,27
+TP3 Performance CRUD Web,br.com.faculdade.tp3.service,RhService,122,721,27,55,24,191,29,42,3,27
 TP3 Performance CRUD Web,br.com.faculdade.tp3.service,RhService.EntradaFuncionario,0,21,0,0,0,1,0,1,0,1
 TP3 Performance CRUD Web,br.com.faculdade.tp3,Tp3PerformanceCrudWebApplication,5,3,0,0,2,1,1,1,1,1
 TP3 Performance CRUD Web,br.com.faculdade.tp3.model.enums,TipoMovimentacaoRh,0,54,0,0,0,6,0,1,0,1

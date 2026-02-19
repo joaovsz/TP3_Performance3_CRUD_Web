@@ -29,8 +29,8 @@
                 <td th:text="${#temporals.format(mov.movimentadoEm, 'dd/MM/yyyy HH:mm:ss')}"></td>
                 <td th:text="${mov.tipo}"></td>
                 <td th:text="${mov.descricao}"></td>
-                <td th:text="${mov.salarioAnterior}"></td>
-                <td th:text="${mov.salarioNovo}"></td>
+                <td th:text="${mov.salarioAnterior != null ? 'R$ ' + #numbers.formatDecimal(mov.salarioAnterior, 1, 'POINT', 2, 'COMMA') : '-'}"></td>
+                <td th:text="${mov.salarioNovo != null ? 'R$ ' + #numbers.formatDecimal(mov.salarioNovo, 1, 'POINT', 2, 'COMMA') : '-'}"></td>
             </tr>
             <tr th:if="${#lists.isEmpty(movimentacoes)}">
                 <td colspan="5">Sem movimentações registradas.</td>

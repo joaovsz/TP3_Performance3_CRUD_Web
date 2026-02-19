@@ -1,24 +1,115 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BootstrapDataConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">TP3 Performance CRUD Web</a> &gt; <a href="index.source.html" class="el_package">br.com.faculdade.tp3.config</a> &gt; <span class="el_source">BootstrapDataConfig.java</span></div><h1>BootstrapDataConfig.java</h1><pre class="source lang-java linenums">package br.com.faculdade.tp3.config;
 
+import br.com.faculdade.tp3.dto.rh.FuncionarioPayload;
 import br.com.faculdade.tp3.model.Departamento;
 import br.com.faculdade.tp3.repository.DepartamentoRepository;
+import br.com.faculdade.tp3.repository.FuncionarioRepository;
+import br.com.faculdade.tp3.service.RhService;
+import java.math.BigDecimal;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-<span class="fc" id="L10">public class BootstrapDataConfig {</span>
+<span class="fc" id="L16">public class BootstrapDataConfig {</span>
 
     @Bean
-    CommandLineRunner seedDepartamentos(DepartamentoRepository departamentoRepository) {
-<span class="fc" id="L14">        return args -&gt; {</span>
-<span class="pc bpc" id="L15" title="1 of 2 branches missed.">            if (departamentoRepository.count() == 0) {</span>
-<span class="fc" id="L16">                departamentoRepository.save(new Departamento(&quot;Recursos Humanos&quot;, &quot;RH&quot;));</span>
-<span class="fc" id="L17">                departamentoRepository.save(new Departamento(&quot;Tecnologia da Informação&quot;, &quot;TI&quot;));</span>
-<span class="fc" id="L18">                departamentoRepository.save(new Departamento(&quot;Financeiro&quot;, &quot;FIN&quot;));</span>
-<span class="fc" id="L19">                departamentoRepository.save(new Departamento(&quot;Operações&quot;, &quot;OPE&quot;));</span>
+    CommandLineRunner seedDadosIniciais(
+            DepartamentoRepository departamentoRepository,
+            FuncionarioRepository funcionarioRepository,
+            RhService rhService
+    ) {
+<span class="fc" id="L24">        return args -&gt; {</span>
+<span class="pc bpc" id="L25" title="1 of 2 branches missed.">            if (departamentoRepository.count() == 0) {</span>
+<span class="fc" id="L26">                departamentoRepository.save(new Departamento(&quot;Recursos Humanos&quot;, &quot;RH&quot;));</span>
+<span class="fc" id="L27">                departamentoRepository.save(new Departamento(&quot;Tecnologia da Informação&quot;, &quot;TI&quot;));</span>
+<span class="fc" id="L28">                departamentoRepository.save(new Departamento(&quot;Financeiro&quot;, &quot;FIN&quot;));</span>
+<span class="fc" id="L29">                departamentoRepository.save(new Departamento(&quot;Operações&quot;, &quot;OPE&quot;));</span>
             }
-<span class="fc" id="L21">        };</span>
+<span class="pc bpc" id="L31" title="1 of 2 branches missed.">            if (funcionarioRepository.count() &gt; 0) {</span>
+<span class="nc" id="L32">                return;</span>
+            }
+
+<span class="fc" id="L35">            Map&lt;String, Long&gt; departamentoPorSigla = departamentoRepository.findAllByOrderByNomeAsc()</span>
+<span class="fc" id="L36">                    .stream()</span>
+<span class="fc" id="L37">                    .collect(Collectors.toMap(</span>
+<span class="fc" id="L38">                            Departamento::getSigla,</span>
+<span class="fc" id="L39">                            Departamento::getId,</span>
+<span class="pc" id="L40">                            (atual, ignorar) -&gt; atual</span>
+                    ));
+
+<span class="fc" id="L43">            validarDepartamentosObrigatorios(departamentoPorSigla);</span>
+
+<span class="fc" id="L45">            contratar(</span>
+<span class="fc" id="L46">                    rhService,</span>
+<span class="fc" id="L47">                    &quot;Mariana Alves&quot;,</span>
+<span class="fc" id="L48">                    &quot;mariana.alves@empresa.com&quot;,</span>
+<span class="fc" id="L49">                    &quot;12345678901&quot;,</span>
+<span class="fc" id="L50">                    &quot;Analista de RH&quot;,</span>
+<span class="fc" id="L51">                    departamentoPorSigla.get(&quot;RH&quot;),</span>
+<span class="fc" id="L52">                    &quot;5400.00&quot;</span>
+            );
+
+<span class="fc" id="L55">            contratar(</span>
+<span class="fc" id="L56">                    rhService,</span>
+<span class="fc" id="L57">                    &quot;Rafael Souza&quot;,</span>
+<span class="fc" id="L58">                    &quot;rafael.souza@empresa.com&quot;,</span>
+<span class="fc" id="L59">                    &quot;12345678902&quot;,</span>
+<span class="fc" id="L60">                    &quot;Desenvolvedor Backend&quot;,</span>
+<span class="fc" id="L61">                    departamentoPorSigla.get(&quot;TI&quot;),</span>
+<span class="fc" id="L62">                    &quot;8900.00&quot;</span>
+            );
+
+<span class="fc" id="L65">            contratar(</span>
+<span class="fc" id="L66">                    rhService,</span>
+<span class="fc" id="L67">                    &quot;Camila Prado&quot;,</span>
+<span class="fc" id="L68">                    &quot;camila.prado@empresa.com&quot;,</span>
+<span class="fc" id="L69">                    &quot;12345678903&quot;,</span>
+<span class="fc" id="L70">                    &quot;Analista Financeira&quot;,</span>
+<span class="fc" id="L71">                    departamentoPorSigla.get(&quot;FIN&quot;),</span>
+<span class="fc" id="L72">                    &quot;7100.00&quot;</span>
+            );
+
+<span class="fc" id="L75">            contratar(</span>
+<span class="fc" id="L76">                    rhService,</span>
+<span class="fc" id="L77">                    &quot;Bruno Martins&quot;,</span>
+<span class="fc" id="L78">                    &quot;bruno.martins@empresa.com&quot;,</span>
+<span class="fc" id="L79">                    &quot;12345678904&quot;,</span>
+<span class="fc" id="L80">                    &quot;Coordenador de Operacoes&quot;,</span>
+<span class="fc" id="L81">                    departamentoPorSigla.get(&quot;OPE&quot;),</span>
+<span class="fc" id="L82">                    &quot;9800.00&quot;</span>
+            );
+<span class="fc" id="L84">        };</span>
     }
+
+    private void validarDepartamentosObrigatorios(Map&lt;String, Long&gt; departamentoPorSigla) {
+<span class="pc bpc" id="L88" title="1 of 2 branches missed.">        if (departamentoPorSigla.get(&quot;RH&quot;) == null</span>
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">                || departamentoPorSigla.get(&quot;TI&quot;) == null</span>
+<span class="pc bpc" id="L90" title="1 of 2 branches missed.">                || departamentoPorSigla.get(&quot;FIN&quot;) == null</span>
+<span class="pc bpc" id="L91" title="1 of 2 branches missed.">                || departamentoPorSigla.get(&quot;OPE&quot;) == null) {</span>
+<span class="nc" id="L92">            throw new IllegalStateException(&quot;Departamentos iniciais obrigatórios não foram carregados.&quot;);</span>
+        }
+<span class="fc" id="L94">    }</span>
+
+    private void contratar(
+            RhService rhService,
+            String nome,
+            String email,
+            String cpf,
+            String cargo,
+            Long departamentoId,
+            String salario
+    ) {
+<span class="fc" id="L105">        FuncionarioPayload payload = new FuncionarioPayload();</span>
+<span class="fc" id="L106">        payload.setNome(nome);</span>
+<span class="fc" id="L107">        payload.setEmail(email);</span>
+<span class="fc" id="L108">        payload.setCpf(cpf);</span>
+<span class="fc" id="L109">        payload.setCargo(cargo);</span>
+<span class="fc" id="L110">        payload.setDepartamentoId(departamentoId);</span>
+<span class="fc" id="L111">        payload.setSalarioInicial(new BigDecimal(salario));</span>
+<span class="fc" id="L112">        rhService.contratar(payload);</span>
+<span class="fc" id="L113">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

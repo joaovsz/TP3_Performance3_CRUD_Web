@@ -4,6 +4,8 @@ import br.com.faculdade.tp3.dto.rh.AjusteSalarialPayload;
 import br.com.faculdade.tp3.dto.rh.DemissaoPayload;
 import br.com.faculdade.tp3.dto.rh.FuncionarioPayload;
 import br.com.faculdade.tp3.dto.rh.PromocaoPayload;
+import br.com.faculdade.tp3.exception.EntradaInvalidaException;
+import br.com.faculdade.tp3.exception.RecursoDuplicadoException;
 import br.com.faculdade.tp3.model.Funcionario;
 import br.com.faculdade.tp3.service.RhService;
 import jakarta.validation.Valid;
@@ -43,9 +45,7 @@ public class FuncionarioWebController {
     @GetMapping("/novo")
     public String novo(Model model) {
         FuncionarioPayload payload = new FuncionarioPayload();
-        model.addAttribute("funcionario", payload);
-        model.addAttribute("departamentos", rhService.listarDepartamentos());
-        model.addAttribute("tituloForm", "Contratar funcionário");
+        popularModeloFormulario(model, payload);
         return "rh/form";
     }
 
@@ -61,9 +61,7 @@ public class FuncionarioWebController {
         payload.setDepartamentoId(funcionario.getDepartamento().getId());
         payload.setSalarioInicial(funcionario.getSalario().getValorAtual());
 
-        model.addAttribute("funcionario", payload);
-        model.addAttribute("departamentos", rhService.listarDepartamentos());
-        model.addAttribute("tituloForm", "Editar cadastro");
+        popularModeloFormulario(model, payload);
         return "rh/form";
     }
 
@@ -75,17 +73,22 @@ public class FuncionarioWebController {
             RedirectAttributes redirectAttributes
     ) {
         if (bindingResult.hasErrors()) {
-            model.addAttribute("departamentos", rhService.listarDepartamentos());
-            model.addAttribute("tituloForm", payload.getId() == null ? "Contratar funcionário" : "Editar cadastro");
+            popularModeloFormulario(model, payload);
             return "rh/form";
         }
 
-        if (payload.getId() == null) {
-            rhService.contratar(payload);
-            redirectAttributes.addFlashAttribute("sucesso", "Funcionário contratado com sucesso.");
-        } else {
-            rhService.atualizarCadastro(payload.getId(), payload);
-            redirectAttributes.addFlashAttribute("sucesso", "Cadastro atualizado com sucesso.");
+        try {
+            if (payload.getId() == null) {
+                rhService.contratar(payload);
+                redirectAttributes.addFlashAttribute("sucesso", "Funcionário contratado com sucesso.");
+            } else {
+                rhService.atualizarCadastro(payload.getId(), payload);
+                redirectAttributes.addFlashAttribute("sucesso", "Cadastro atualizado com sucesso.");
+            }
+        } catch (RecursoDuplicadoException | EntradaInvalidaException ex) {
+            popularModeloFormulario(model, payload);
+            model.addAttribute("erro", ex.getMessage());
+            return "rh/form";
         }
 
         return "redirect:/rh/funcionarios";
@@ -162,5 +165,11 @@ public class FuncionarioWebController {
         model.addAttribute("funcionario", rhService.buscarFuncionario(id));
         model.addAttribute("movimentacoes", rhService.listarMovimentacoes(id));
         return "rh/movimentacoes";
+    }
+
+    private void popularModeloFormulario(Model model, FuncionarioPayload payload) {
+        model.addAttribute("funcionario", payload);
+        model.addAttribute("departamentos", rhService.listarDepartamentos());
+        model.addAttribute("tituloForm", payload.getId() == null ? "Contratar funcionário" : "Editar cadastro");
     }
 }

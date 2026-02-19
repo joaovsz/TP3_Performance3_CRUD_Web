@@ -10,6 +10,7 @@
 <body>
 <main class="container narrow">
     <h1 th:text="${tituloForm}"></h1>
+    <section th:if="${erro}" class="alert alert-error" id="alerta-erro-form" th:text="${erro}"></section>
 
     <form class="stack-form" th:action="@{/rh/funcionarios/salvar}" th:object="${funcionario}" method="post">
         <input type="hidden" th:field="*{id}">

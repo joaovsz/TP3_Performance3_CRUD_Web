@@ -320,8 +320,8 @@ public class RhService {
 <span class="fc" id="L320">        String cpf = sanitizarCpf(payload.getCpf());</span>
 <span class="fc" id="L321">        String cargo = sanitizarTextoHumano(payload.getCargo(), &quot;Cargo&quot;, true, 2, 100);</span>
 <span class="fc" id="L322">        Long departamentoId = payload.getDepartamentoId();</span>
-<span class="pc bpc" id="L323" title="1 of 2 branches missed.">        if (departamentoId == null) {</span>
-<span class="nc" id="L324">            throw new EntradaInvalidaException(&quot;Departamento é obrigatório.&quot;);</span>
+<span class="fc bfc" id="L323" title="All 2 branches covered.">        if (departamentoId == null) {</span>
+<span class="fc" id="L324">            throw new EntradaInvalidaException(&quot;Departamento é obrigatório.&quot;);</span>
         }
 
 <span class="fc" id="L327">        BigDecimal salario = null;</span>

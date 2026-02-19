@@ -4,6 +4,8 @@ import br.com.faculdade.tp3.dto.rh.AjusteSalarialPayload;
 import br.com.faculdade.tp3.dto.rh.DemissaoPayload;
 import br.com.faculdade.tp3.dto.rh.FuncionarioPayload;
 import br.com.faculdade.tp3.dto.rh.PromocaoPayload;
+import br.com.faculdade.tp3.exception.EntradaInvalidaException;
+import br.com.faculdade.tp3.exception.RecursoDuplicadoException;
 import br.com.faculdade.tp3.model.Funcionario;
 import br.com.faculdade.tp3.service.RhService;
 import jakarta.validation.Valid;
@@ -24,9 +26,9 @@ public class FuncionarioWebController {
 
     private final RhService rhService;
 
-<span class="fc" id="L27">    public FuncionarioWebController(RhService rhService) {</span>
-<span class="fc" id="L28">        this.rhService = rhService;</span>
-<span class="fc" id="L29">    }</span>
+<span class="fc" id="L29">    public FuncionarioWebController(RhService rhService) {</span>
+<span class="fc" id="L30">        this.rhService = rhService;</span>
+<span class="fc" id="L31">    }</span>
 
     @GetMapping
     public String listar(
@@ -34,18 +36,16 @@ public class FuncionarioWebController {
             @RequestParam(required = false) Boolean ativos,
             Model model
     ) {
-<span class="fc" id="L37">        model.addAttribute(&quot;funcionarios&quot;, rhService.listarFuncionarios(nome, ativos));</span>
-<span class="fc bfc" id="L38" title="All 2 branches covered.">        model.addAttribute(&quot;filtroNome&quot;, nome == null ? &quot;&quot; : nome);</span>
-<span class="fc" id="L39">        model.addAttribute(&quot;filtroAtivos&quot;, ativos);</span>
-<span class="fc" id="L40">        return &quot;rh/lista&quot;;</span>
+<span class="fc" id="L39">        model.addAttribute(&quot;funcionarios&quot;, rhService.listarFuncionarios(nome, ativos));</span>
+<span class="fc bfc" id="L40" title="All 2 branches covered.">        model.addAttribute(&quot;filtroNome&quot;, nome == null ? &quot;&quot; : nome);</span>
+<span class="fc" id="L41">        model.addAttribute(&quot;filtroAtivos&quot;, ativos);</span>
+<span class="fc" id="L42">        return &quot;rh/lista&quot;;</span>
     }
 
     @GetMapping(&quot;/novo&quot;)
     public String novo(Model model) {
-<span class="fc" id="L45">        FuncionarioPayload payload = new FuncionarioPayload();</span>
-<span class="fc" id="L46">        model.addAttribute(&quot;funcionario&quot;, payload);</span>
-<span class="fc" id="L47">        model.addAttribute(&quot;departamentos&quot;, rhService.listarDepartamentos());</span>
-<span class="fc" id="L48">        model.addAttribute(&quot;tituloForm&quot;, &quot;Contratar funcionário&quot;);</span>
+<span class="fc" id="L47">        FuncionarioPayload payload = new FuncionarioPayload();</span>
+<span class="fc" id="L48">        popularModeloFormulario(model, payload);</span>
 <span class="fc" id="L49">        return &quot;rh/form&quot;;</span>
     }
 
@@ -61,10 +61,8 @@ public class FuncionarioWebController {
 <span class="fc" id="L61">        payload.setDepartamentoId(funcionario.getDepartamento().getId());</span>
 <span class="fc" id="L62">        payload.setSalarioInicial(funcionario.getSalario().getValorAtual());</span>
 
-<span class="fc" id="L64">        model.addAttribute(&quot;funcionario&quot;, payload);</span>
-<span class="fc" id="L65">        model.addAttribute(&quot;departamentos&quot;, rhService.listarDepartamentos());</span>
-<span class="fc" id="L66">        model.addAttribute(&quot;tituloForm&quot;, &quot;Editar cadastro&quot;);</span>
-<span class="fc" id="L67">        return &quot;rh/form&quot;;</span>
+<span class="fc" id="L64">        popularModeloFormulario(model, payload);</span>
+<span class="fc" id="L65">        return &quot;rh/form&quot;;</span>
     }
 
     @PostMapping(&quot;/salvar&quot;)
@@ -74,28 +72,33 @@ public class FuncionarioWebController {
             Model model,
             RedirectAttributes redirectAttributes
     ) {
-<span class="fc bfc" id="L77" title="All 2 branches covered.">        if (bindingResult.hasErrors()) {</span>
-<span class="fc" id="L78">            model.addAttribute(&quot;departamentos&quot;, rhService.listarDepartamentos());</span>
-<span class="pc bpc" id="L79" title="1 of 2 branches missed.">            model.addAttribute(&quot;tituloForm&quot;, payload.getId() == null ? &quot;Contratar funcionário&quot; : &quot;Editar cadastro&quot;);</span>
-<span class="fc" id="L80">            return &quot;rh/form&quot;;</span>
+<span class="fc bfc" id="L75" title="All 2 branches covered.">        if (bindingResult.hasErrors()) {</span>
+<span class="fc" id="L76">            popularModeloFormulario(model, payload);</span>
+<span class="fc" id="L77">            return &quot;rh/form&quot;;</span>
         }
 
-<span class="fc bfc" id="L83" title="All 2 branches covered.">        if (payload.getId() == null) {</span>
-<span class="fc" id="L84">            rhService.contratar(payload);</span>
-<span class="fc" id="L85">            redirectAttributes.addFlashAttribute(&quot;sucesso&quot;, &quot;Funcionário contratado com sucesso.&quot;);</span>
-<span class="fc" id="L86">        } else {</span>
-<span class="fc" id="L87">            rhService.atualizarCadastro(payload.getId(), payload);</span>
-<span class="fc" id="L88">            redirectAttributes.addFlashAttribute(&quot;sucesso&quot;, &quot;Cadastro atualizado com sucesso.&quot;);</span>
+        try {
+<span class="fc bfc" id="L81" title="All 2 branches covered.">            if (payload.getId() == null) {</span>
+<span class="fc" id="L82">                rhService.contratar(payload);</span>
+<span class="fc" id="L83">                redirectAttributes.addFlashAttribute(&quot;sucesso&quot;, &quot;Funcionário contratado com sucesso.&quot;);</span>
+<span class="fc" id="L84">            } else {</span>
+<span class="fc" id="L85">                rhService.atualizarCadastro(payload.getId(), payload);</span>
+<span class="fc" id="L86">                redirectAttributes.addFlashAttribute(&quot;sucesso&quot;, &quot;Cadastro atualizado com sucesso.&quot;);</span>
+            }
+<span class="fc" id="L88">        } catch (RecursoDuplicadoException | EntradaInvalidaException ex) {</span>
+<span class="fc" id="L89">            popularModeloFormulario(model, payload);</span>
+<span class="fc" id="L90">            model.addAttribute(&quot;erro&quot;, ex.getMessage());</span>
+<span class="fc" id="L91">            return &quot;rh/form&quot;;</span>
         }
 
-<span class="fc" id="L91">        return &quot;redirect:/rh/funcionarios&quot;;</span>
+<span class="fc" id="L94">        return &quot;redirect:/rh/funcionarios&quot;;</span>
     }
 
     @GetMapping(&quot;/{id}/aumento&quot;)
     public String telaAumento(@PathVariable Long id, Model model) {
-<span class="fc" id="L96">        model.addAttribute(&quot;funcionario&quot;, rhService.buscarFuncionario(id));</span>
-<span class="fc" id="L97">        model.addAttribute(&quot;payload&quot;, new AjusteSalarialPayload());</span>
-<span class="fc" id="L98">        return &quot;rh/aumento&quot;;</span>
+<span class="fc" id="L99">        model.addAttribute(&quot;funcionario&quot;, rhService.buscarFuncionario(id));</span>
+<span class="fc" id="L100">        model.addAttribute(&quot;payload&quot;, new AjusteSalarialPayload());</span>
+<span class="fc" id="L101">        return &quot;rh/aumento&quot;;</span>
     }
 
     @PostMapping(&quot;/{id}/aumento&quot;)
@@ -106,21 +109,21 @@ public class FuncionarioWebController {
             Model model,
             RedirectAttributes redirectAttributes
     ) {
-<span class="fc bfc" id="L109" title="All 2 branches covered.">        if (bindingResult.hasErrors()) {</span>
-<span class="fc" id="L110">            model.addAttribute(&quot;funcionario&quot;, rhService.buscarFuncionario(id));</span>
-<span class="fc" id="L111">            return &quot;rh/aumento&quot;;</span>
+<span class="fc bfc" id="L112" title="All 2 branches covered.">        if (bindingResult.hasErrors()) {</span>
+<span class="fc" id="L113">            model.addAttribute(&quot;funcionario&quot;, rhService.buscarFuncionario(id));</span>
+<span class="fc" id="L114">            return &quot;rh/aumento&quot;;</span>
         }
 
-<span class="fc" id="L114">        rhService.aumentarSalario(id, payload);</span>
-<span class="fc" id="L115">        redirectAttributes.addFlashAttribute(&quot;sucesso&quot;, &quot;Aumento aplicado com sucesso.&quot;);</span>
-<span class="fc" id="L116">        return &quot;redirect:/rh/funcionarios&quot;;</span>
+<span class="fc" id="L117">        rhService.aumentarSalario(id, payload);</span>
+<span class="fc" id="L118">        redirectAttributes.addFlashAttribute(&quot;sucesso&quot;, &quot;Aumento aplicado com sucesso.&quot;);</span>
+<span class="fc" id="L119">        return &quot;redirect:/rh/funcionarios&quot;;</span>
     }
 
     @GetMapping(&quot;/{id}/promocao&quot;)
     public String telaPromocao(@PathVariable Long id, Model model) {
-<span class="fc" id="L121">        model.addAttribute(&quot;funcionario&quot;, rhService.buscarFuncionario(id));</span>
-<span class="fc" id="L122">        model.addAttribute(&quot;payload&quot;, new PromocaoPayload());</span>
-<span class="fc" id="L123">        return &quot;rh/promocao&quot;;</span>
+<span class="fc" id="L124">        model.addAttribute(&quot;funcionario&quot;, rhService.buscarFuncionario(id));</span>
+<span class="fc" id="L125">        model.addAttribute(&quot;payload&quot;, new PromocaoPayload());</span>
+<span class="fc" id="L126">        return &quot;rh/promocao&quot;;</span>
     }
 
     @PostMapping(&quot;/{id}/promocao&quot;)
@@ -131,37 +134,43 @@ public class FuncionarioWebController {
             Model model,
             RedirectAttributes redirectAttributes
     ) {
-<span class="fc bfc" id="L134" title="All 2 branches covered.">        if (bindingResult.hasErrors()) {</span>
-<span class="fc" id="L135">            model.addAttribute(&quot;funcionario&quot;, rhService.buscarFuncionario(id));</span>
-<span class="fc" id="L136">            return &quot;rh/promocao&quot;;</span>
+<span class="fc bfc" id="L137" title="All 2 branches covered.">        if (bindingResult.hasErrors()) {</span>
+<span class="fc" id="L138">            model.addAttribute(&quot;funcionario&quot;, rhService.buscarFuncionario(id));</span>
+<span class="fc" id="L139">            return &quot;rh/promocao&quot;;</span>
         }
 
-<span class="fc" id="L139">        rhService.promover(id, payload);</span>
-<span class="fc" id="L140">        redirectAttributes.addFlashAttribute(&quot;sucesso&quot;, &quot;Promoção aplicada com sucesso.&quot;);</span>
-<span class="fc" id="L141">        return &quot;redirect:/rh/funcionarios&quot;;</span>
+<span class="fc" id="L142">        rhService.promover(id, payload);</span>
+<span class="fc" id="L143">        redirectAttributes.addFlashAttribute(&quot;sucesso&quot;, &quot;Promoção aplicada com sucesso.&quot;);</span>
+<span class="fc" id="L144">        return &quot;redirect:/rh/funcionarios&quot;;</span>
     }
 
     @PostMapping(&quot;/{id}/demitir&quot;)
     public String demitir(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-<span class="fc" id="L146">        DemissaoPayload payload = new DemissaoPayload();</span>
-<span class="fc" id="L147">        payload.setMotivo(&quot;Desligamento via painel de RH&quot;);</span>
-<span class="fc" id="L148">        rhService.demitir(id, payload);</span>
-<span class="fc" id="L149">        redirectAttributes.addFlashAttribute(&quot;sucesso&quot;, &quot;Funcionário demitido com sucesso.&quot;);</span>
-<span class="fc" id="L150">        return &quot;redirect:/rh/funcionarios&quot;;</span>
+<span class="fc" id="L149">        DemissaoPayload payload = new DemissaoPayload();</span>
+<span class="fc" id="L150">        payload.setMotivo(&quot;Desligamento via painel de RH&quot;);</span>
+<span class="fc" id="L151">        rhService.demitir(id, payload);</span>
+<span class="fc" id="L152">        redirectAttributes.addFlashAttribute(&quot;sucesso&quot;, &quot;Funcionário demitido com sucesso.&quot;);</span>
+<span class="fc" id="L153">        return &quot;redirect:/rh/funcionarios&quot;;</span>
     }
 
     @PostMapping(&quot;/{id}/excluir-definitivo&quot;)
     public String excluirDefinitivo(@PathVariable Long id, RedirectAttributes redirectAttributes) {
-<span class="fc" id="L155">        rhService.excluirDefinitivamente(id);</span>
-<span class="fc" id="L156">        redirectAttributes.addFlashAttribute(&quot;sucesso&quot;, &quot;Registro excluído definitivamente.&quot;);</span>
-<span class="fc" id="L157">        return &quot;redirect:/rh/funcionarios&quot;;</span>
+<span class="fc" id="L158">        rhService.excluirDefinitivamente(id);</span>
+<span class="fc" id="L159">        redirectAttributes.addFlashAttribute(&quot;sucesso&quot;, &quot;Registro excluído definitivamente.&quot;);</span>
+<span class="fc" id="L160">        return &quot;redirect:/rh/funcionarios&quot;;</span>
     }
 
     @GetMapping(&quot;/{id}/movimentacoes&quot;)
     public String movimentacoes(@PathVariable Long id, Model model) {
-<span class="fc" id="L162">        model.addAttribute(&quot;funcionario&quot;, rhService.buscarFuncionario(id));</span>
-<span class="fc" id="L163">        model.addAttribute(&quot;movimentacoes&quot;, rhService.listarMovimentacoes(id));</span>
-<span class="fc" id="L164">        return &quot;rh/movimentacoes&quot;;</span>
+<span class="fc" id="L165">        model.addAttribute(&quot;funcionario&quot;, rhService.buscarFuncionario(id));</span>
+<span class="fc" id="L166">        model.addAttribute(&quot;movimentacoes&quot;, rhService.listarMovimentacoes(id));</span>
+<span class="fc" id="L167">        return &quot;rh/movimentacoes&quot;;</span>
     }
+
+    private void popularModeloFormulario(Model model, FuncionarioPayload payload) {
+<span class="fc" id="L171">        model.addAttribute(&quot;funcionario&quot;, payload);</span>
+<span class="fc" id="L172">        model.addAttribute(&quot;departamentos&quot;, rhService.listarDepartamentos());</span>
+<span class="fc bfc" id="L173" title="All 2 branches covered.">        model.addAttribute(&quot;tituloForm&quot;, payload.getId() == null ? &quot;Contratar funcionário&quot; : &quot;Editar cadastro&quot;);</span>
+<span class="fc" id="L174">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.11.202310140853</span></div></body></html>

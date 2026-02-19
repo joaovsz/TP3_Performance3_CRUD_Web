@@ -16,6 +16,7 @@ import br.com.faculdade.tp3.controller.rh.FuncionarioWebController;
 import br.com.faculdade.tp3.dto.rh.AjusteSalarialPayload;
 import br.com.faculdade.tp3.dto.rh.DemissaoPayload;
 import br.com.faculdade.tp3.dto.rh.PromocaoPayload;
+import br.com.faculdade.tp3.exception.RecursoDuplicadoException;
 import br.com.faculdade.tp3.model.Departamento;
 import br.com.faculdade.tp3.model.Funcionario;
 import br.com.faculdade.tp3.model.Salario;
@@ -128,6 +129,24 @@ class FuncionarioWebControllerTest {
                 .andExpect(redirectedUrl("/rh/funcionarios"));
 
         verify(rhService).atualizarCadastro(eq(1L), any());
+    }
+
+    @Test
+    void deveExibirErroNoFormularioQuandoCadastroDuplicado() throws Exception {
+        when(rhService.listarDepartamentos()).thenReturn(List.of(new Departamento("TI", "TI")));
+        when(rhService.contratar(any())).thenThrow(new RecursoDuplicadoException("Já existe funcionário com o CPF informado."));
+
+        mockMvc.perform(post("/rh/funcionarios/salvar")
+                        .param("nome", "Maria Clara")
+                        .param("email", "maria@empresa.com")
+                        .param("cpf", "12345678901")
+                        .param("cargo", "Analista")
+                        .param("departamentoId", "1")
+                        .param("salarioInicial", "3500.00"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("rh/form"))
+                .andExpect(model().attributeExists("erro"))
+                .andExpect(model().attribute("erro", "Já existe funcionário com o CPF informado."));
     }
 
     @Test

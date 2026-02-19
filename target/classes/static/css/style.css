@@ -24,7 +24,7 @@ body {
 }
 
 .container {
-    width: min(1200px, 92vw);
+    width: min(1440px, 96vw);
     margin: 24px auto;
     padding: 24px;
     background: var(--surface);
@@ -49,6 +49,30 @@ body {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
     margin-bottom: 20px;
+}
+
+.filter-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.filter-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 220px;
+}
+
+.filter-field input,
+.filter-field select {
+    width: 100%;
+}
+
+#btn-filtrar {
+    margin-left: auto;
+    min-width: 120px;
 }
 
 .stack-form {
@@ -91,6 +115,12 @@ td {
     border-bottom: 1px solid var(--line);
     padding: 10px;
     vertical-align: top;
+}
+
+#tabela-funcionarios th:nth-child(4),
+#tabela-funcionarios td:nth-child(4) {
+    min-width: 150px;
+    white-space: nowrap;
 }
 
 .actions {
@@ -191,5 +221,18 @@ td {
 @media (max-width: 900px) {
     .grid-form {
         grid-template-columns: 1fr;
+    }
+
+    .filter-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-field {
+        min-width: 0;
+    }
+
+    #btn-filtrar {
+        margin-left: 0;
     }
 }

@@ -1,6 +1,8 @@
 package br.com.faculdade.tp3.controller;
 
 import br.com.faculdade.tp3.dto.ApiErrorResponse;
+import br.com.faculdade.tp3.controller.rh.DiagnosticoApiController;
+import br.com.faculdade.tp3.controller.rh.RhApiController;
 import br.com.faculdade.tp3.exception.EntradaInvalidaException;
 import br.com.faculdade.tp3.exception.RecursoDuplicadoException;
 import br.com.faculdade.tp3.exception.RecursoNaoEncontradoException;
@@ -17,7 +19,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-@RestControllerAdvice(basePackages = "br.com.faculdade.tp3.controller.rh")
+@RestControllerAdvice(assignableTypes = {RhApiController.class, DiagnosticoApiController.class})
 public class ApiExceptionHandler {
 
     @ExceptionHandler(RecursoNaoEncontradoException.class)

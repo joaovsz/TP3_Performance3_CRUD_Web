@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: br.com.faculdade.tp3.integration.RhApiControllerIntegrationTest
 -------------------------------------------------------------------------------
-Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.693 s -- in br.com.faculdade.tp3.integration.RhApiControllerIntegrationTest
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.721 s -- in br.com.faculdade.tp3.integration.RhApiControllerIntegrationTest
