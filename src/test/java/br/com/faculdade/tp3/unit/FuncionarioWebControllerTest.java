@@ -27,12 +27,22 @@ import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
+import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(controllers = FuncionarioWebController.class)
+@WebMvcTest(
+        controllers = FuncionarioWebController.class,
+        excludeAutoConfiguration = {
+                DataSourceAutoConfiguration.class,
+                HibernateJpaAutoConfiguration.class,
+                JpaRepositoriesAutoConfiguration.class
+        }
+)
 @Import(WebExceptionHandler.class)
 class FuncionarioWebControllerTest {
 

@@ -1,0 +1,6 @@
+# Maven
+target/
+target/surefire-reports/
+
+# OS
+.DS_Store

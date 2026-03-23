@@ -139,7 +139,27 @@ function configurarMascaraSalario() {
     campoSalario.addEventListener("blur", () => sincronizarSalario(true));
 }
 
+function configurarMenuAtivo() {
+    const caminho = window.location.pathname || "";
+    const menuRh = document.getElementById("menu-rh");
+    const menuProdutos = document.getElementById("menu-produtos");
+    const menuNovoProduto = document.getElementById("menu-novo-produto");
+
+    if (menuRh && caminho.startsWith("/rh/")) {
+        menuRh.classList.add("is-active");
+    }
+
+    if (menuProdutos && caminho.startsWith("/produtos")) {
+        menuProdutos.classList.add("is-active");
+    }
+
+    if (menuNovoProduto && caminho.startsWith("/produtos/novo")) {
+        menuNovoProduto.classList.add("is-active");
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+    configurarMenuAtivo();
     configurarMascaraCpf();
     configurarMascaraSalario();
 

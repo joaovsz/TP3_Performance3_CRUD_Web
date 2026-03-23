@@ -1,14 +1,7 @@
 <!DOCTYPE html>
-<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${tituloForm}"></title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-    <script defer th:src="@{/js/app.js}"></script>
-</head>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(titulo=${tituloForm}, conteudo=~{::content})}">
 <body>
-<main class="container narrow">
+<div th:fragment="content" class="narrow">
     <h1 th:text="${tituloForm}"></h1>
     <section th:if="${erro}" class="alert alert-error" id="alerta-erro-form" th:text="${erro}"></section>
 
@@ -49,6 +42,6 @@
             <a class="btn" th:href="@{/rh/funcionarios}">Voltar</a>
         </div>
     </form>
-</main>
+</div>
 </body>
 </html>

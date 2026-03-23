@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(titulo='Lista de Produtos', conteudo=~{::content})}">
+<body>
+    <div th:fragment="content">
+        <div class="page-header">
+            <h2>Lista de Produtos</h2>
+        </div>
+
+        <div class="table-container" th:if="${produtos != null and !produtos.isEmpty()}">
+            <table id="tabela-produtos">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome</th>
+                        <th>Descrição</th>
+                        <th>Preço</th>
+                        <th>Quantidade</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="produto : ${produtos}" th:attr="data-id=${produto.id}">
+                        <td th:text="${produto.id}"></td>
+                        <td th:text="${produto.nome}" class="produto-nome"></td>
+                        <td th:text="${produto.descricao}" class="produto-descricao"></td>
+                        <td th:text="${'R$ ' + #numbers.formatDecimal(produto.preco, 1, 2)}" class="produto-preco"></td>
+                        <td th:text="${produto.quantidade}" class="produto-quantidade"></td>
+                        <td class="actions">
+                            <a th:href="@{/produtos/editar/{id}(id=${produto.id})}"
+                               class="btn btn-edit btn-editar"
+                               th:attr="data-id=${produto.id}">
+                                Editar
+                            </a>
+                            <a th:href="@{/produtos/deletar/{id}(id=${produto.id})}"
+                               class="btn btn-delete btn-deletar"
+                               th:attr="data-id=${produto.id}"
+                               onclick="return confirm('Tem certeza que deseja deletar este produto?')">
+                                Deletar
+                            </a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div th:if="${produtos == null or produtos.isEmpty()}" class="empty-state" id="msg-vazio">
+            <p>Nenhum produto cadastrado.</p>
+            <a th:href="@{/produtos/novo}" class="btn btn-primary">Cadastrar Primeiro Produto</a>
+        </div>
+    </div>
+</body>
+</html>

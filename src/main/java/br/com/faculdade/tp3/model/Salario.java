@@ -13,6 +13,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -63,6 +64,21 @@ public class Salario {
 
     public void setValorAtual(BigDecimal valorAtual) {
         this.valorAtual = valorAtual;
+    }
+
+    public BigDecimal aplicarAumento(BigDecimal percentual) {
+        if (percentual == null || percentual.signum() <= 0) {
+            throw new IllegalArgumentException("Percentual de aumento deve ser positivo.");
+        }
+        if (valorAtual == null) {
+            throw new IllegalStateException("Salário atual não está definido.");
+        }
+
+        BigDecimal fator = percentual.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP);
+        valorAtual = valorAtual
+                .multiply(BigDecimal.ONE.add(fator))
+                .setScale(2, RoundingMode.HALF_UP);
+        return valorAtual;
     }
 
     public LocalDateTime getAtualizadoEm() {

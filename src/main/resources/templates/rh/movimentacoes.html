@@ -1,13 +1,7 @@
 <!DOCTYPE html>
-<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Histórico de Movimentações</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(titulo='Histórico de Movimentações', conteudo=~{::content})}">
 <body>
-<main class="container">
+<div th:fragment="content">
     <h1>Histórico de movimentações</h1>
     <p>
         Funcionário: <strong th:text="${funcionario.nome}"></strong>
@@ -40,6 +34,6 @@
     </div>
 
     <a class="btn" th:href="@{/rh/funcionarios}">Voltar</a>
-</main>
+</div>
 </body>
 </html>

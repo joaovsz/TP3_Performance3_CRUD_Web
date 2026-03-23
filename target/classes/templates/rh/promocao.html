@@ -1,13 +1,7 @@
 <!DOCTYPE html>
-<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Promoção</title>
-    <link rel="stylesheet" th:href="@{/css/style.css}">
-</head>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(titulo='Promoção', conteudo=~{::content})}">
 <body>
-<main class="container narrow">
+<div th:fragment="content" class="narrow">
     <h1>Promover funcionário</h1>
     <p><strong th:text="${funcionario.nome}"></strong> - cargo atual: <span th:text="${funcionario.cargo}"></span></p>
 
@@ -29,6 +23,6 @@
             <a class="btn" th:href="@{/rh/funcionarios}">Voltar</a>
         </div>
     </form>
-</main>
+</div>
 </body>
 </html>

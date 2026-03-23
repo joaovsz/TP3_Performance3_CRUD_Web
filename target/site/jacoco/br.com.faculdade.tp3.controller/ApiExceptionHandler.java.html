@@ -69,7 +69,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
     @ExceptionHandler(Exception.class)
     public ResponseEntity&lt;ApiErrorResponse&gt; handleGeneric(Exception ex, HttpServletRequest request) {
 <span class="nc" id="L71">        return build(HttpStatus.INTERNAL_SERVER_ERROR,</span>
-<span class="nc" id="L72">                &quot;Erro interno no servidor. Tente novamente mais tarde.&quot;,</span>
+                &quot;Erro interno no servidor. Tente novamente mais tarde.&quot;,
 <span class="nc" id="L73">                request.getRequestURI());</span>
     }
 
@@ -78,8 +78,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 <span class="fc" id="L78">                LocalDateTime.now(),</span>
 <span class="fc" id="L79">                status.value(),</span>
 <span class="fc" id="L80">                status.getReasonPhrase(),</span>
-<span class="fc" id="L81">                message,</span>
-<span class="fc" id="L82">                path</span>
+                message,
+                path
         );
 <span class="fc" id="L84">        return ResponseEntity.status(status).body(body);</span>
     }

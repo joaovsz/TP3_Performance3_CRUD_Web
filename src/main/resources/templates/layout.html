@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:fragment="layout(titulo, conteudo)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${titulo}">Sistema Integrado RH + Produtos</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<header class="topbar">
+    <div class="topbar-inner">
+        <nav class="topbar-nav">
+            <a th:href="@{/rh/funcionarios}" id="menu-rh">
+                Funcionários (RH)
+            </a>
+            <a th:href="@{/produtos}" id="menu-produtos">
+                Produtos
+            </a>
+            <a class="btn btn-primary" th:href="@{/produtos/novo}" id="menu-novo-produto">
+                Novo Produto
+            </a>
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+    <div th:if="${sucesso}" class="alert alert-success" id="msg-sucesso">
+        <span th:text="${sucesso}"></span>
+    </div>
+
+    <div th:if="${erro}" class="alert alert-error" id="msg-erro">
+        <span th:text="${erro}"></span>
+    </div>
+
+    <div th:replace="${conteudo}"></div>
+</main>
+
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

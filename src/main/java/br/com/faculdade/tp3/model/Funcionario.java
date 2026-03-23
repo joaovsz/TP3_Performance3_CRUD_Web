@@ -30,7 +30,7 @@ import java.util.Objects;
                 @UniqueConstraint(name = "uk_funcionario_cpf", columnNames = "cpf")
         }
 )
-public class Funcionario {
+public class Funcionario implements EntidadeRastreavel {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

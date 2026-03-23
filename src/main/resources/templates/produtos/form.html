@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(titulo=${produto.id != null ? 'Editar Produto' : 'Novo Produto'}, conteudo=~{::content})}">
+<body>
+    <div th:fragment="content">
+        <div class="page-header">
+            <h2 th:text="${produto.id != null ? 'Editar Produto' : 'Novo Produto'}"></h2>
+            <a th:href="@{/produtos}" class="btn btn-secondary" id="btn-voltar">Voltar</a>
+        </div>
+
+        <div class="form-container">
+            <form th:action="@{/produtos}" th:object="${produto}" method="post" id="form-produto">
+                <input type="hidden" th:field="*{id}" />
+
+                <div class="form-group">
+                    <label for="nome">Nome *</label>
+                    <input type="text"
+                           th:field="*{nome}"
+                           id="nome"
+                           class="form-control"
+                           required
+                           minlength="3"
+                           maxlength="100"
+                           placeholder="Digite o nome do produto">
+                    <span th:if="${#fields.hasErrors('nome')}"
+                          th:errors="*{nome}"
+                          class="error-message"
+                          id="erro-nome"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="descricao">Descrição *</label>
+                    <textarea th:field="*{descricao}"
+                              id="descricao"
+                              class="form-control"
+                              required
+                              minlength="10"
+                              maxlength="500"
+                              rows="4"
+                              placeholder="Digite a descrição do produto"></textarea>
+                    <span th:if="${#fields.hasErrors('descricao')}"
+                          th:errors="*{descricao}"
+                          class="error-message"
+                          id="erro-descricao"></span>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="preco">Preço *</label>
+                        <input type="number"
+                               th:field="*{preco}"
+                               id="preco"
+                               class="form-control"
+                               required
+                               min="0.01"
+                               step="0.01"
+                               placeholder="0.00">
+                        <span th:if="${#fields.hasErrors('preco')}"
+                              th:errors="*{preco}"
+                              class="error-message"
+                              id="erro-preco"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="quantidade">Quantidade *</label>
+                        <input type="number"
+                               th:field="*{quantidade}"
+                               id="quantidade"
+                               class="form-control"
+                               required
+                               min="0"
+                               placeholder="0">
+                        <span th:if="${#fields.hasErrors('quantidade')}"
+                              th:errors="*{quantidade}"
+                              class="error-message"
+                              id="erro-quantidade"></span>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="btn-salvar">Salvar</button>
+                    <a th:href="@{/produtos}" class="btn btn-secondary" id="btn-cancelar">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

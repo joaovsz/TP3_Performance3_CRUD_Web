@@ -7,6 +7,7 @@ import br.com.faculdade.tp3.dto.rh.PromocaoPayload;
 import br.com.faculdade.tp3.exception.EntradaInvalidaException;
 import br.com.faculdade.tp3.exception.RecursoDuplicadoException;
 import br.com.faculdade.tp3.exception.RecursoNaoEncontradoException;
+import br.com.faculdade.tp3.model.Cpf;
 import br.com.faculdade.tp3.model.Departamento;
 import br.com.faculdade.tp3.model.Funcionario;
 import br.com.faculdade.tp3.model.MovimentacaoRh;
@@ -16,25 +17,17 @@ import br.com.faculdade.tp3.model.enums.TipoMovimentacaoRh;
 import br.com.faculdade.tp3.repository.DepartamentoRepository;
 import br.com.faculdade.tp3.repository.FuncionarioRepository;
 import br.com.faculdade.tp3.repository.MovimentacaoRhRepository;
+import br.com.faculdade.tp3.util.RhValidator;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Locale;
-import java.util.regex.Pattern;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class RhService {
-
-    private static final Pattern CONTROL_PATTERN = Pattern.compile(".*[\\p{Cntrl}&&[^\\r\\n\\t]].*");
-    private static final Pattern HUMAN_TEXT_PATTERN = Pattern.compile("^[\\p{L}0-9 .,'-]+$");
-    private static final Pattern MALICIOUS_PATTERN = Pattern.compile(
-            ".*(<|>|\\{|\\}|\\$\\{|--|;|/\\*|\\*/|\\bselect\\b|\\binsert\\b|\\bdelete\\b|\\bdrop\\b).*",
-            Pattern.CASE_INSENSITIVE
-    );
 
     private final FuncionarioRepository funcionarioRepository;
     private final DepartamentoRepository departamentoRepository;
@@ -61,7 +54,7 @@ public class RhService {
             return funcionarioRepository.findByStatusOrderByNomeAsc(status);
         }
 
-        String termo = sanitizarTextoHumano(nome, "Filtro de nome", false, 1, 120);
+        String termo = RhValidator.sanitizarTextoHumano(nome, "Filtro de nome", false, 1, 120);
         if (status == null) {
             return funcionarioRepository.findByNomeContainingIgnoreCaseOrderByNomeAsc(termo);
         }
@@ -89,13 +82,13 @@ public class RhService {
     @Transactional
     public Funcionario contratar(FuncionarioPayload payload) {
         EntradaFuncionario entrada = normalizarFuncionario(payload, null, true);
-        validarChavesUnicas(entrada.email(), entrada.cpf(), null);
+        validarChavesUnicas(entrada.email(), entrada.cpf().getValor(), null);
         Departamento departamento = buscarDepartamento(entrada.departamentoId());
 
         Funcionario funcionario = new Funcionario();
         funcionario.setNome(entrada.nome());
         funcionario.setEmail(entrada.email());
-        funcionario.setCpf(entrada.cpf());
+        funcionario.setCpf(entrada.cpf().getValor());
         funcionario.setCargo(entrada.cargo());
         funcionario.setDepartamento(departamento);
         funcionario.setStatus(FuncionarioStatus.ATIVO);
@@ -122,11 +115,11 @@ public class RhService {
         EntradaFuncionario entrada = normalizarFuncionario(payload, id, false);
 
         Funcionario funcionario = buscarFuncionario(id);
-        validarChavesUnicas(entrada.email(), entrada.cpf(), id);
+        validarChavesUnicas(entrada.email(), entrada.cpf().getValor(), id);
 
         funcionario.setNome(entrada.nome());
         funcionario.setEmail(entrada.email());
-        funcionario.setCpf(entrada.cpf());
+        funcionario.setCpf(entrada.cpf().getValor());
         funcionario.setCargo(entrada.cargo());
         funcionario.setDepartamento(buscarDepartamento(entrada.departamentoId()));
 
@@ -149,18 +142,13 @@ public class RhService {
         }
 
         BigDecimal percentual = validarPercentual(payload.getPercentual(), "Percentual de aumento");
-        String motivo = sanitizarTexto(payload.getMotivo(), "Motivo", true, 5, 255);
+        String motivo = RhValidator.sanitizarTexto(payload.getMotivo(), "Motivo", true, 5, 255);
 
         Funcionario funcionario = buscarFuncionario(id);
         validarFuncionarioAtivo(funcionario);
 
         BigDecimal salarioAnterior = funcionario.getSalario().getValorAtual();
-        BigDecimal fator = percentual.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP);
-        BigDecimal salarioNovo = salarioAnterior
-                .multiply(BigDecimal.ONE.add(fator))
-                .setScale(2, RoundingMode.HALF_UP);
-
-        funcionario.getSalario().setValorAtual(salarioNovo);
+        BigDecimal salarioNovo = funcionario.getSalario().aplicarAumento(percentual);
         Funcionario salvo = salvarComTratamento(funcionario);
 
         registrarMovimentacao(
@@ -180,21 +168,17 @@ public class RhService {
             throw new EntradaInvalidaException("Dados de promoção são obrigatórios.");
         }
 
-        String novoCargo = sanitizarTextoHumano(payload.getNovoCargo(), "Novo cargo", true, 2, 100);
-        String motivo = sanitizarTexto(payload.getMotivo(), "Motivo", true, 5, 255);
+        String novoCargo = RhValidator.sanitizarTextoHumano(payload.getNovoCargo(), "Novo cargo", true, 2, 100);
+        String motivo = RhValidator.sanitizarTexto(payload.getMotivo(), "Motivo", true, 5, 255);
         BigDecimal percentual = validarPercentual(payload.getPercentualAumento(), "Percentual da promoção");
 
         Funcionario funcionario = buscarFuncionario(id);
         validarFuncionarioAtivo(funcionario);
 
         BigDecimal salarioAnterior = funcionario.getSalario().getValorAtual();
-        BigDecimal fator = percentual.divide(BigDecimal.valueOf(100), 6, RoundingMode.HALF_UP);
-        BigDecimal salarioNovo = salarioAnterior
-                .multiply(BigDecimal.ONE.add(fator))
-                .setScale(2, RoundingMode.HALF_UP);
+        BigDecimal salarioNovo = funcionario.getSalario().aplicarAumento(percentual);
 
         funcionario.setCargo(novoCargo);
-        funcionario.getSalario().setValorAtual(salarioNovo);
 
         Funcionario salvo = salvarComTratamento(funcionario);
         registrarMovimentacao(
@@ -214,7 +198,7 @@ public class RhService {
             throw new EntradaInvalidaException("Dados de demissão são obrigatórios.");
         }
 
-        String motivo = sanitizarTexto(payload.getMotivo(), "Motivo da demissão", true, 5, 255);
+        String motivo = RhValidator.sanitizarTexto(payload.getMotivo(), "Motivo da demissão", true, 5, 255);
 
         Funcionario funcionario = buscarFuncionario(id);
         if (funcionario.getStatus() == FuncionarioStatus.INATIVO) {
@@ -315,10 +299,10 @@ public class RhService {
             throw new EntradaInvalidaException("ID do corpo não confere com o ID da rota.");
         }
 
-        String nome = sanitizarTextoHumano(payload.getNome(), "Nome", true, 3, 120);
-        String email = sanitizarEmail(payload.getEmail());
-        String cpf = sanitizarCpf(payload.getCpf());
-        String cargo = sanitizarTextoHumano(payload.getCargo(), "Cargo", true, 2, 100);
+        String nome = RhValidator.sanitizarTextoHumano(payload.getNome(), "Nome", true, 3, 120);
+        String email = RhValidator.sanitizarEmail(payload.getEmail());
+        Cpf cpf = RhValidator.sanitizarCpf(payload.getCpf());
+        String cargo = RhValidator.sanitizarTextoHumano(payload.getCargo(), "Cargo", true, 2, 100);
         Long departamentoId = payload.getDepartamentoId();
         if (departamentoId == null) {
             throw new EntradaInvalidaException("Departamento é obrigatório.");
@@ -330,58 +314,6 @@ public class RhService {
         }
 
         return new EntradaFuncionario(nome, email, cpf, cargo, departamentoId, salario);
-    }
-
-    private String sanitizarTexto(String valor, String campo, boolean obrigatorio, int min, int max) {
-        if (valor == null) {
-            if (obrigatorio) {
-                throw new EntradaInvalidaException(campo + " é obrigatório.");
-            }
-            return "";
-        }
-
-        String normalizado = valor.trim();
-        if (obrigatorio && normalizado.isEmpty()) {
-            throw new EntradaInvalidaException(campo + " é obrigatório.");
-        }
-
-        if (!normalizado.isEmpty() && (normalizado.length() < min || normalizado.length() > max)) {
-            throw new EntradaInvalidaException(campo + " deve ter entre " + min + " e " + max + " caracteres.");
-        }
-
-        if (CONTROL_PATTERN.matcher(normalizado).matches()) {
-            throw new EntradaInvalidaException(campo + " contém caracteres inválidos.");
-        }
-
-        if (MALICIOUS_PATTERN.matcher(normalizado).matches()) {
-            throw new EntradaInvalidaException(campo + " contém conteúdo potencialmente malicioso.");
-        }
-
-        return normalizado;
-    }
-
-    private String sanitizarTextoHumano(String valor, String campo, boolean obrigatorio, int min, int max) {
-        String normalizado = sanitizarTexto(valor, campo, obrigatorio, min, max);
-        if (!normalizado.isEmpty() && !HUMAN_TEXT_PATTERN.matcher(normalizado).matches()) {
-            throw new EntradaInvalidaException(campo + " contém caracteres não permitidos.");
-        }
-        return normalizado;
-    }
-
-    private String sanitizarEmail(String email) {
-        String normalizado = sanitizarTexto(email, "Email", true, 5, 160).toLowerCase(Locale.ROOT);
-        if (!normalizado.contains("@") || normalizado.startsWith("@") || normalizado.endsWith("@")) {
-            throw new EntradaInvalidaException("Email inválido.");
-        }
-        return normalizado;
-    }
-
-    private String sanitizarCpf(String cpf) {
-        String normalizado = sanitizarTexto(cpf, "CPF", true, 11, 11);
-        if (!normalizado.matches("^[0-9]{11}$")) {
-            throw new EntradaInvalidaException("CPF deve conter exatamente 11 dígitos.");
-        }
-        return normalizado;
     }
 
     private BigDecimal sanitizarSalario(BigDecimal salario, String campo) {
@@ -408,7 +340,7 @@ public class RhService {
     private record EntradaFuncionario(
             String nome,
             String email,
-            String cpf,
+            Cpf cpf,
             String cargo,
             Long departamentoId,
             BigDecimal salario
