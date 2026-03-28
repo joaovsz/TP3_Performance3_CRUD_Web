@@ -4,9 +4,9 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication(scanBasePackages = {"br.com.faculdade.tp3", "com.tp2.engsoftware"})
-public class Tp3PerformanceCrudWebApplication {
+public class Tp5PerformanceCrudWebApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(Tp3PerformanceCrudWebApplication.class, args);
+        SpringApplication.run(Tp5PerformanceCrudWebApplication.class, args);
     }
 }

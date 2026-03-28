@@ -12,9 +12,9 @@
     </parent>
 
     <groupId>br.com.faculdade</groupId>
-    <artifactId>tp3-performance-crud-web</artifactId>
+    <artifactId>tp5-performance-crud-web</artifactId>
     <version>1.0.0</version>
-    <name>TP3 Performance CRUD Web</name>
+    <name>TP5 Performance CRUD Web</name>
     <description>Sistema CRUD Web robusto com testes avançados</description>
 
     <properties>
