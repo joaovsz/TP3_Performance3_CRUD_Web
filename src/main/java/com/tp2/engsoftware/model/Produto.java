@@ -1,11 +1,12 @@
 package com.tp2.engsoftware.model;
 
-import br.com.faculdade.tp3.model.EntidadeRastreavel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Objects;
+
+import br.com.faculdade.tp5.model.EntidadeRastreavel;
 
 @Entity
 @Table(name = "produtos")

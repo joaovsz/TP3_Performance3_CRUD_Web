@@ -8,22 +8,6 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import br.com.faculdade.tp3.dto.rh.AjusteSalarialPayload;
-import br.com.faculdade.tp3.dto.rh.DemissaoPayload;
-import br.com.faculdade.tp3.dto.rh.FuncionarioPayload;
-import br.com.faculdade.tp3.dto.rh.PromocaoPayload;
-import br.com.faculdade.tp3.exception.EntradaInvalidaException;
-import br.com.faculdade.tp3.exception.RecursoDuplicadoException;
-import br.com.faculdade.tp3.model.Departamento;
-import br.com.faculdade.tp3.model.Funcionario;
-import br.com.faculdade.tp3.model.FuncionarioAdministrativo;
-import br.com.faculdade.tp3.model.MovimentacaoRh;
-import br.com.faculdade.tp3.model.Salario;
-import br.com.faculdade.tp3.model.enums.FuncionarioStatus;
-import br.com.faculdade.tp3.repository.DepartamentoRepository;
-import br.com.faculdade.tp3.repository.FuncionarioRepository;
-import br.com.faculdade.tp3.repository.MovimentacaoRhRepository;
-import br.com.faculdade.tp3.service.RhService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -36,6 +20,23 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import br.com.faculdade.tp5.dto.rh.AjusteSalarialPayload;
+import br.com.faculdade.tp5.dto.rh.DemissaoPayload;
+import br.com.faculdade.tp5.dto.rh.FuncionarioPayload;
+import br.com.faculdade.tp5.dto.rh.PromocaoPayload;
+import br.com.faculdade.tp5.exception.EntradaInvalidaException;
+import br.com.faculdade.tp5.exception.RecursoDuplicadoException;
+import br.com.faculdade.tp5.model.Departamento;
+import br.com.faculdade.tp5.model.Funcionario;
+import br.com.faculdade.tp5.model.FuncionarioAdministrativo;
+import br.com.faculdade.tp5.model.MovimentacaoRh;
+import br.com.faculdade.tp5.model.Salario;
+import br.com.faculdade.tp5.model.enums.FuncionarioStatus;
+import br.com.faculdade.tp5.repository.DepartamentoRepository;
+import br.com.faculdade.tp5.repository.FuncionarioRepository;
+import br.com.faculdade.tp5.repository.MovimentacaoRhRepository;
+import br.com.faculdade.tp5.service.RhService;
 
 @ExtendWith(MockitoExtension.class)
 class RhServiceTest {

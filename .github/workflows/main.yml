@@ -222,4 +222,4 @@ jobs:
         run: echo "::notice::Executando validação funcional pós-deploy com Selenium."
 
       - name: Run PostDeployValidationSeleniumTest
-        run: mvn -B -Pselenium -Dtest=br.com.faculdade.tp3.selenium.PostDeployValidationSeleniumTest test
+        run: mvn -B -Pselenium -Dtest=br.com.faculdade.tp5.selenium.PostDeployValidationSeleniumTest test

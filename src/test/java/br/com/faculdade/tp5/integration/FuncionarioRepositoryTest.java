@@ -2,12 +2,6 @@ package br.com.faculdade.tp5.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import br.com.faculdade.tp3.model.Departamento;
-import br.com.faculdade.tp3.model.Funcionario;
-import br.com.faculdade.tp3.model.Salario;
-import br.com.faculdade.tp3.model.enums.FuncionarioStatus;
-import br.com.faculdade.tp3.repository.DepartamentoRepository;
-import br.com.faculdade.tp3.repository.FuncionarioRepository;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -15,6 +9,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+
+import br.com.faculdade.tp5.model.Departamento;
+import br.com.faculdade.tp5.model.Funcionario;
+import br.com.faculdade.tp5.model.Salario;
+import br.com.faculdade.tp5.model.enums.FuncionarioStatus;
+import br.com.faculdade.tp5.repository.DepartamentoRepository;
+import br.com.faculdade.tp5.repository.FuncionarioRepository;
 
 @DataJpaTest
 class FuncionarioRepositoryTest {

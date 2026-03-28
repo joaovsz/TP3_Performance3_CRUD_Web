@@ -2,15 +2,16 @@ package br.com.faculdade.tp5.unit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import br.com.faculdade.tp3.model.Departamento;
-import br.com.faculdade.tp3.model.Funcionario;
-import br.com.faculdade.tp3.model.FuncionarioAdministrativo;
-import br.com.faculdade.tp3.model.FuncionarioFactory;
-import br.com.faculdade.tp3.model.FuncionarioLideranca;
-import br.com.faculdade.tp3.model.FuncionarioTecnico;
-import br.com.faculdade.tp3.model.enums.FuncionarioStatus;
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
+
+import br.com.faculdade.tp5.model.Departamento;
+import br.com.faculdade.tp5.model.Funcionario;
+import br.com.faculdade.tp5.model.FuncionarioAdministrativo;
+import br.com.faculdade.tp5.model.FuncionarioFactory;
+import br.com.faculdade.tp5.model.FuncionarioLideranca;
+import br.com.faculdade.tp5.model.FuncionarioTecnico;
+import br.com.faculdade.tp5.model.enums.FuncionarioStatus;
 
 class FuncionarioFactoryTest {
 

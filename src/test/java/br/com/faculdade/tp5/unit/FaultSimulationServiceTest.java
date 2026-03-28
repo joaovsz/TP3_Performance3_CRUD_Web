@@ -3,12 +3,13 @@ package br.com.faculdade.tp5.unit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import br.com.faculdade.tp3.exception.EntradaInvalidaException;
-import br.com.faculdade.tp3.exception.SobrecargaSistemaException;
-import br.com.faculdade.tp3.exception.TimeoutServicoException;
-import br.com.faculdade.tp3.service.FaultSimulationService;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
+
+import br.com.faculdade.tp5.exception.EntradaInvalidaException;
+import br.com.faculdade.tp5.exception.SobrecargaSistemaException;
+import br.com.faculdade.tp5.exception.TimeoutServicoException;
+import br.com.faculdade.tp5.service.FaultSimulationService;
 
 class FaultSimulationServiceTest {
 

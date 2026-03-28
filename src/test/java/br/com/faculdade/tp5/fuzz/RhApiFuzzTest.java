@@ -3,12 +3,14 @@ package br.com.faculdade.tp5.fuzz;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 
-import br.com.faculdade.tp3.dto.rh.FuncionarioPayload;
-import br.com.faculdade.tp3.model.Departamento;
-import br.com.faculdade.tp3.repository.DepartamentoRepository;
-import br.com.faculdade.tp3.repository.FuncionarioRepository;
-import br.com.faculdade.tp3.repository.MovimentacaoRhRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import br.com.faculdade.tp5.dto.rh.FuncionarioPayload;
+import br.com.faculdade.tp5.model.Departamento;
+import br.com.faculdade.tp5.repository.DepartamentoRepository;
+import br.com.faculdade.tp5.repository.FuncionarioRepository;
+import br.com.faculdade.tp5.repository.MovimentacaoRhRepository;
+
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.stream.Stream;

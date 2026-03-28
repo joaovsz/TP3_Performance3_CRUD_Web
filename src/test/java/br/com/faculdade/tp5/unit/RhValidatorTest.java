@@ -3,10 +3,11 @@ package br.com.faculdade.tp5.unit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import br.com.faculdade.tp3.exception.EntradaInvalidaException;
-import br.com.faculdade.tp3.model.Cpf;
-import br.com.faculdade.tp3.util.RhValidator;
 import org.junit.jupiter.api.Test;
+
+import br.com.faculdade.tp5.exception.EntradaInvalidaException;
+import br.com.faculdade.tp5.model.Cpf;
+import br.com.faculdade.tp5.util.RhValidator;
 
 class RhValidatorTest {
 

@@ -11,17 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-import br.com.faculdade.tp3.controller.WebExceptionHandler;
-import br.com.faculdade.tp3.controller.rh.FuncionarioWebController;
-import br.com.faculdade.tp3.dto.rh.AjusteSalarialPayload;
-import br.com.faculdade.tp3.dto.rh.DemissaoPayload;
-import br.com.faculdade.tp3.dto.rh.PromocaoPayload;
-import br.com.faculdade.tp3.exception.RecursoDuplicadoException;
-import br.com.faculdade.tp3.model.Departamento;
-import br.com.faculdade.tp3.model.Funcionario;
-import br.com.faculdade.tp3.model.Salario;
-import br.com.faculdade.tp3.model.enums.FuncionarioStatus;
-import br.com.faculdade.tp3.service.RhService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
@@ -34,6 +23,18 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
+
+import br.com.faculdade.tp5.controller.WebExceptionHandler;
+import br.com.faculdade.tp5.controller.rh.FuncionarioWebController;
+import br.com.faculdade.tp5.dto.rh.AjusteSalarialPayload;
+import br.com.faculdade.tp5.dto.rh.DemissaoPayload;
+import br.com.faculdade.tp5.dto.rh.PromocaoPayload;
+import br.com.faculdade.tp5.exception.RecursoDuplicadoException;
+import br.com.faculdade.tp5.model.Departamento;
+import br.com.faculdade.tp5.model.Funcionario;
+import br.com.faculdade.tp5.model.Salario;
+import br.com.faculdade.tp5.model.enums.FuncionarioStatus;
+import br.com.faculdade.tp5.service.RhService;
 
 @WebMvcTest(
         controllers = FuncionarioWebController.class,
