@@ -1,9 +1,12 @@
-# TP4 - Sistema Integrado RH + Produtos
+# TP5 - Sistema Integrado RH + Produtos
+
+[![CI-CD-TP5](https://github.com/joaovsz/TP3_Performance3_CRUD_Web/actions/workflows/main.yml/badge.svg)](https://github.com/joaovsz/TP3_Performance3_CRUD_Web/actions/workflows/main.yml)
+[![Cobertura mínima](https://img.shields.io/badge/Cobertura-JaCoCo%2085%25%2B-brightgreen)](https://github.com/joaovsz/TP3_Performance3_CRUD_Web/actions/workflows/main.yml)
 
 Projeto unificado de Engenharia de Software que integra:
-- módulo de RH (TP3);
+- módulo de RH (TP5);
 - módulo de Produtos com CQRS (TP2);
-- esteira CI/CD no GitHub Actions com validação de cobertura.
+- esteira CI/CD com segurança e validação pós-deploy.
 
 ## Funcionalidades
 
@@ -21,16 +24,17 @@ Projeto unificado de Engenharia de Software que integra:
 ### Arquitetura e qualidade
 - Refatoração com SRP (`RhValidator`)
 - Value Object para CPF (`Cpf`)
+- Polimorfismo para tipos de funcionário
 - Regra de aumento salarial encapsulada em `Salario.aplicarAumento(...)`
 - Interface comum `EntidadeRastreavel` aplicada a `Funcionario` e `Produto`
-- Testes unitários e de integração dos dois módulos no mesmo build
+- Testes unitários e de integração no mesmo build
 
 ## Tecnologias
 - Java 17
 - Spring Boot 3.2.6
 - Spring MVC + Thymeleaf
 - Spring Data JPA + H2
-- JUnit 5 + Mockito + MockMvc
+- JUnit 5 + Mockito + MockMvc + Selenium
 - JaCoCo
 
 ## Como executar
@@ -57,7 +61,7 @@ Exemplos:
 ### 4. Banco H2
 - Console: `http://localhost:8080/h2-console`
 
-As configurações estão em `src/main/resources/application.properties` e os dois módulos usam o mesmo datasource H2 da aplicação.
+As configurações estão em `src/main/resources/application.properties`.
 
 ### 5. Rodar testes
 
@@ -65,7 +69,7 @@ As configurações estão em `src/main/resources/application.properties` e os do
 mvn test
 ```
 
-### 6. Validar cobertura (mínimo configurado no `pom.xml`)
+### 6. Validar cobertura (mínimo no `pom.xml`)
 
 ```bash
 mvn verify
@@ -75,27 +79,31 @@ Relatório JaCoCo local:
 - `target/site/jacoco/index.html`
 
 ## CI/CD no GitHub Actions
-- Workflow: `.github/workflows/main.yml`
-- Runner: `ubuntu-latest`
-- Actions usadas:
-  - `actions/setup-java`
-  - `madrapps/jacoco-report`
-- Disparo em `push` e `pull_request`
-- Build executado no pipeline: `mvn -B clean verify`
 
-### Como visualizar o pipeline
-1. Envie sua branch para o GitHub.
-2. Abra um Pull Request.
-3. Vá na aba **Actions** e abra o workflow **CI**.
-4. No PR, verifique o comentário automático de cobertura do JaCoCo.
+- Workflow: `.github/workflows/main.yml`
+- Nome: `CI-CD-TP5`
+- Runner: `ubuntu-latest`
+- Disparo: `push`, `pull_request`, `workflow_dispatch`
+
+### Etapas do pipeline
+1. `build-test`: build + testes + cobertura JaCoCo.
+2. `codeql`: análise estática de segurança (SAST).
+3. `deploy-test`: valida URL de teste + DAST com OWASP ZAP.
+4. `deploy-production`: ambiente de produção com aprovação manual.
+5. `post-deploy-validation`: Selenium pós-deploy (`PostDeployValidationSeleniumTest`).
+
+### Secrets esperados
+- `TEST_APP_URL`: URL pública do ambiente de teste (com `http://` ou `https://`).
+- `PRODUCTION_APP_URL`: URL pública do ambiente de produção (com `http://` ou `https://`).
+- `AWS_ROLE_TO_ASSUME` e `AWS_REGION` (opcional): OIDC para nuvem.
 
 ## Estrutura principal
 
 ```text
-src/main/java/br/com/faculdade/tp3      # módulo RH
+src/main/java/br/com/faculdade/tp5      # módulo RH
 src/main/java/com/tp2/engsoftware       # módulo Produtos (TP2)
-src/test/java/br/com/faculdade/tp3      # testes RH
+src/test/java/br/com/faculdade/tp5      # testes RH
 src/test/java/com/tp2/engsoftware       # testes Produtos
-.github/workflows/main.yml              # pipeline CI
-docs/RELATORIO_TP4.md                   # relatório da entrega
+.github/workflows/main.yml              # pipeline CI/CD
+docs/RELATORIO_TP5.md                   # relatório da entrega
 ```
