@@ -1,4 +1,4 @@
-package br.com.faculdade.tp3.integration;
+package br.com.faculdade.tp5.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

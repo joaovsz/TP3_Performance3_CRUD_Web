@@ -1,4 +1,4 @@
-package br.com.faculdade.tp3.fuzz;
+package br.com.faculdade.tp5.fuzz;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;

@@ -1,4 +1,4 @@
-package br.com.faculdade.tp3.selenium;
+package br.com.faculdade.tp5.selenium;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

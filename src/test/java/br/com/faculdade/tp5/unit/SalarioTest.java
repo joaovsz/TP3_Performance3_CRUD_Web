@@ -1,4 +1,4 @@
-package br.com.faculdade.tp3.unit;
+package br.com.faculdade.tp5.unit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
