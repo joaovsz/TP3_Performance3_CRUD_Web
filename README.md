@@ -83,12 +83,6 @@ Relatório JaCoCo local:
 - Disparo em `push` e `pull_request`
 - Build executado no pipeline: `mvn -B clean verify`
 
-### Como visualizar o pipeline
-1. Envie sua branch para o GitHub.
-2. Abra um Pull Request.
-3. Vá na aba **Actions** e abra o workflow **CI**.
-4. No PR, verifique o comentário automático de cobertura do JaCoCo.
-
 ## Estrutura principal
 
 ```text
