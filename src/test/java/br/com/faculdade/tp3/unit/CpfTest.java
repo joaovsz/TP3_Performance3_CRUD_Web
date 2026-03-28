@@ -21,4 +21,23 @@ class CpfTest {
                 .isInstanceOf(EntradaInvalidaException.class)
                 .hasMessageContaining("CPF");
     }
+
+    @Test
+    void deveCompararCpfsPeloValor() {
+        Cpf cpfA = new Cpf("12345678901");
+        Cpf cpfB = new Cpf("12345678901");
+        Cpf cpfC = new Cpf("10987654321");
+
+        assertThat(cpfA).isEqualTo(cpfB);
+        assertThat(cpfA).hasSameHashCodeAs(cpfB);
+        assertThat(cpfA).isNotEqualTo(cpfC);
+        assertThat(cpfA).isNotEqualTo(null);
+        assertThat(cpfA).isNotEqualTo("12345678901");
+    }
+
+    @Test
+    void deveRetornarToStringComValorDoCpf() {
+        Cpf cpf = new Cpf("12345678901");
+        assertThat(cpf.toString()).isEqualTo("12345678901");
+    }
 }
