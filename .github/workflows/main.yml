@@ -139,6 +139,8 @@ jobs:
         with:
           target: ${{ steps.publish.outputs.test_url }}
           cmd_options: "-a"
+          allow_issue_writing: false
+          fail_action: false
 
   deploy-production:
     name: Deploy Production (Manual Approval)
