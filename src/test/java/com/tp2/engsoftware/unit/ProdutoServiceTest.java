@@ -190,4 +190,31 @@ public class ProdutoServiceTest {
         assertThat(resultado).isNotNull();
         verify(repository, times(1)).save(any(Produto.class));
     }
+
+    @Test
+    @DisplayName("Deve falhar com ID inválido nas operações por ID")
+    public void deveFalharComIdInvalido() {
+        assertThatThrownBy(() -> service.buscarPorId(0L))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("positivo");
+
+        assertThatThrownBy(() -> service.deletar(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("positivo");
+    }
+
+    @Test
+    @DisplayName("Deve falhar ao criar produto inválido")
+    public void deveFalharAoCriarProdutoInvalido() {
+        Produto invalido = new Produto();
+        invalido.setNome(" ");
+        invalido.setDescricao(" ");
+        invalido.setPreco(BigDecimal.ZERO);
+        invalido.setQuantidade(-1);
+
+        assertThatThrownBy(() -> service.criar(invalido))
+                .isInstanceOf(IllegalArgumentException.class);
+
+        verify(repository, never()).save(any());
+    }
 }

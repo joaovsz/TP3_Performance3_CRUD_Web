@@ -1,13 +1,18 @@
-name: CI
+name: CI-CD-TP5
 
 on:
   push:
   pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build-test:
-    name: Build, Test and Coverage
+    name: Build, Tests and Coverage
     runs-on: ubuntu-latest
+    environment: dev
 
     steps:
       - name: Checkout
@@ -17,8 +22,11 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: "17"
           cache: maven
+
+      - name: Notice - start build
+        run: echo "::notice::Iniciando build e testes do TP5."
 
       - name: Run tests and coverage check
         run: mvn -B clean verify
@@ -33,3 +41,161 @@ jobs:
           min-coverage-changed-files: 85
           title: Cobertura de testes
           update-comment: true
+
+      - name: Notice - end build
+        run: echo "::notice::Build e cobertura concluídos com sucesso."
+
+  codeql:
+    name: CodeQL SAST
+    runs-on: ubuntu-latest
+    needs: build-test
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [java]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v3
+
+  deploy-test:
+    name: Deploy Test + DAST
+    runs-on: ubuntu-latest
+    needs: codeql
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    environment:
+      name: test
+      url: ${{ steps.publish.outputs.test_url }}
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      TEST_APP_URL: ${{ secrets.TEST_APP_URL }}
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Notice - start deploy test
+        run: echo "::notice::Iniciando deploy em ambiente de teste."
+
+      - name: Configure cloud credentials with OIDC (optional AWS)
+        if: env.AWS_ROLE_TO_ASSUME != '' && env.AWS_REGION != ''
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Publish on test environment
+        id: publish
+        run: |
+          if [ -z "${TEST_APP_URL}" ]; then
+            echo "::warning::Secret TEST_APP_URL não configurada. Ajuste para habilitar deploy/DAST."
+            echo "test_url=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "test_url=${TEST_APP_URL}" >> "$GITHUB_OUTPUT"
+          echo "::notice::Deploy de teste concluído em ${TEST_APP_URL}"
+
+      - name: OWASP ZAP Baseline (DAST)
+        if: steps.publish.outputs.test_url != ''
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: ${{ steps.publish.outputs.test_url }}
+          cmd_options: "-a"
+
+  deploy-production:
+    name: Deploy Production (Manual Approval)
+    runs-on: ubuntu-latest
+    needs: deploy-test
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    environment:
+      name: production
+      url: ${{ steps.publish.outputs.prod_url }}
+    outputs:
+      prod_url: ${{ steps.publish.outputs.prod_url }}
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      PRODUCTION_APP_URL: ${{ secrets.PRODUCTION_APP_URL }}
+      AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Notice - start deploy production
+        run: echo "::notice::Aguardando aprovação manual para deploy em produção."
+
+      - name: Configure cloud credentials with OIDC (optional AWS)
+        if: env.AWS_ROLE_TO_ASSUME != '' && env.AWS_REGION != ''
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Publish on production environment
+        id: publish
+        run: |
+          if [ -z "${PRODUCTION_APP_URL}" ]; then
+            echo "::warning::Secret PRODUCTION_APP_URL não configurada. Ajuste para validar pós-deploy."
+            echo "prod_url=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "prod_url=${PRODUCTION_APP_URL}" >> "$GITHUB_OUTPUT"
+          echo "::notice::Deploy em produção concluído em ${PRODUCTION_APP_URL}"
+
+  post-deploy-validation:
+    name: Selenium Post Deploy Validation
+    runs-on: ubuntu-latest
+    needs: deploy-production
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    env:
+      APP_BASE_URL: ${{ needs.deploy-production.outputs.prod_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Notice - running post deploy selenium
+        run: echo "::notice::Executando validação funcional pós-deploy com Selenium."
+
+      - name: Run PostDeployValidationSeleniumTest
+        run: mvn -B -Pselenium -Dtest=br.com.faculdade.tp3.selenium.PostDeployValidationSeleniumTest test

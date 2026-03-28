@@ -10,6 +10,7 @@ import br.com.faculdade.tp3.exception.RecursoNaoEncontradoException;
 import br.com.faculdade.tp3.model.Cpf;
 import br.com.faculdade.tp3.model.Departamento;
 import br.com.faculdade.tp3.model.Funcionario;
+import br.com.faculdade.tp3.model.FuncionarioFactory;
 import br.com.faculdade.tp3.model.MovimentacaoRh;
 import br.com.faculdade.tp3.model.Salario;
 import br.com.faculdade.tp3.model.enums.FuncionarioStatus;
@@ -49,16 +50,16 @@ public class RhService {
 
         if (nome == null || nome.isBlank()) {
             if (status == null) {
-                return funcionarioRepository.findAllByOrderByNomeAsc();
+                return listaImutavel(funcionarioRepository.findAllByOrderByNomeAsc());
             }
-            return funcionarioRepository.findByStatusOrderByNomeAsc(status);
+            return listaImutavel(funcionarioRepository.findByStatusOrderByNomeAsc(status));
         }
 
         String termo = RhValidator.sanitizarTextoHumano(nome, "Filtro de nome", false, 1, 120);
-        if (status == null) {
-            return funcionarioRepository.findByNomeContainingIgnoreCaseOrderByNomeAsc(termo);
+        if (status != null) {
+            return listaImutavel(funcionarioRepository.findByNomeContainingIgnoreCaseAndStatusOrderByNomeAsc(termo, status));
         }
-        return funcionarioRepository.findByNomeContainingIgnoreCaseAndStatusOrderByNomeAsc(termo, status);
+        return listaImutavel(funcionarioRepository.findByNomeContainingIgnoreCaseOrderByNomeAsc(termo));
     }
 
     @Transactional(readOnly = true)
@@ -71,12 +72,12 @@ public class RhService {
     @Transactional(readOnly = true)
     public List<MovimentacaoRh> listarMovimentacoes(Long funcionarioId) {
         validarId(funcionarioId);
-        return movimentacaoRhRepository.findByFuncionarioIdOrderByMovimentadoEmDesc(funcionarioId);
+        return listaImutavel(movimentacaoRhRepository.findByFuncionarioIdOrderByMovimentadoEmDesc(funcionarioId));
     }
 
     @Transactional(readOnly = true)
     public List<Departamento> listarDepartamentos() {
-        return departamentoRepository.findAllByOrderByNomeAsc();
+        return listaImutavel(departamentoRepository.findAllByOrderByNomeAsc());
     }
 
     @Transactional
@@ -85,14 +86,14 @@ public class RhService {
         validarChavesUnicas(entrada.email(), entrada.cpf().getValor(), null);
         Departamento departamento = buscarDepartamento(entrada.departamentoId());
 
-        Funcionario funcionario = new Funcionario();
-        funcionario.setNome(entrada.nome());
-        funcionario.setEmail(entrada.email());
-        funcionario.setCpf(entrada.cpf().getValor());
-        funcionario.setCargo(entrada.cargo());
-        funcionario.setDepartamento(departamento);
-        funcionario.setStatus(FuncionarioStatus.ATIVO);
-        funcionario.setDataAdmissao(LocalDate.now());
+        Funcionario funcionario = FuncionarioFactory.criarPorCargo(
+                entrada.nome(),
+                entrada.email(),
+                entrada.cpf().getValor(),
+                entrada.cargo(),
+                departamento,
+                LocalDate.now()
+        );
 
         Salario salario = new Salario();
         salario.setValorAtual(entrada.salario());
@@ -174,6 +175,9 @@ public class RhService {
 
         Funcionario funcionario = buscarFuncionario(id);
         validarFuncionarioAtivo(funcionario);
+        if (!funcionario.aceitaPromocaoPara(novoCargo)) {
+            throw new EntradaInvalidaException("Promoção incompatível com o tipo atual de funcionário.");
+        }
 
         BigDecimal salarioAnterior = funcionario.getSalario().getValorAtual();
         BigDecimal salarioNovo = funcionario.getSalario().aplicarAumento(percentual);
@@ -335,6 +339,13 @@ public class RhService {
             throw new EntradaInvalidaException(campo + " deve estar entre 0.01 e 300.00.");
         }
         return valor;
+    }
+
+    private <T> List<T> listaImutavel(List<T> itens) {
+        if (itens == null || itens.isEmpty()) {
+            return List.of();
+        }
+        return List.copyOf(itens);
     }
 
     private record EntradaFuncionario(

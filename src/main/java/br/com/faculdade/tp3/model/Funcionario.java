@@ -4,6 +4,8 @@ import br.com.faculdade.tp3.model.enums.FuncionarioStatus;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorColumn;
+import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -11,6 +13,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
@@ -30,6 +34,9 @@ import java.util.Objects;
                 @UniqueConstraint(name = "uk_funcionario_cpf", columnNames = "cpf")
         }
 )
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "tipo_funcionario", length = 20)
+@DiscriminatorValue("GERAL")
 public class Funcionario implements EntidadeRastreavel {
 
     @Id
@@ -71,6 +78,27 @@ public class Funcionario implements EntidadeRastreavel {
 
     @Column(name = "atualizado_em", nullable = false)
     private LocalDateTime atualizadoEm;
+
+    public Funcionario() {
+    }
+
+    protected Funcionario(
+            String nome,
+            String email,
+            String cpf,
+            String cargo,
+            Departamento departamento,
+            FuncionarioStatus status,
+            LocalDate dataAdmissao
+    ) {
+        this.nome = nome;
+        this.email = email;
+        this.cpf = cpf;
+        this.cargo = cargo;
+        this.departamento = departamento;
+        this.status = status;
+        this.dataAdmissao = dataAdmissao;
+    }
 
     @PrePersist
     public void prePersist() {
@@ -165,6 +193,10 @@ public class Funcionario implements EntidadeRastreavel {
         this.dataDemissao = dataDemissao;
     }
 
+    public boolean aceitaPromocaoPara(String novoCargo) {
+        return true;
+    }
+
     public LocalDateTime getCriadoEm() {
         return criadoEm;
     }
@@ -187,5 +219,77 @@ public class Funcionario implements EntidadeRastreavel {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public static Builder builder() {
+        return new Builder(new Funcionario());
+    }
+
+    public static Builder builder(Funcionario destino) {
+        return new Builder(destino);
+    }
+
+    public static final class Builder {
+        private final Funcionario destino;
+
+        private Builder(Funcionario destino) {
+            this.destino = destino;
+        }
+
+        public Builder nome(String nome) {
+            destino.setNome(nome);
+            return this;
+        }
+
+        public Builder email(String email) {
+            destino.setEmail(email);
+            return this;
+        }
+
+        public Builder cpf(String cpf) {
+            destino.setCpf(cpf);
+            return this;
+        }
+
+        public Builder cargo(String cargo) {
+            destino.setCargo(cargo);
+            return this;
+        }
+
+        public Builder departamento(Departamento departamento) {
+            destino.setDepartamento(departamento);
+            return this;
+        }
+
+        public Builder status(FuncionarioStatus status) {
+            destino.setStatus(status);
+            return this;
+        }
+
+        public Builder dataAdmissao(LocalDate dataAdmissao) {
+            destino.setDataAdmissao(dataAdmissao);
+            return this;
+        }
+
+        public Builder dataDemissao(LocalDate dataDemissao) {
+            destino.setDataDemissao(dataDemissao);
+            return this;
+        }
+
+        public Funcionario build() {
+            if (destino.nome == null || destino.email == null || destino.cpf == null || destino.cargo == null) {
+                throw new IllegalStateException("Dados obrigatórios do funcionário não foram definidos.");
+            }
+            if (destino.departamento == null) {
+                throw new IllegalStateException("Departamento é obrigatório para montar um funcionário.");
+            }
+            if (destino.status == null) {
+                throw new IllegalStateException("Status do funcionário é obrigatório.");
+            }
+            if (destino.dataAdmissao == null) {
+                throw new IllegalStateException("Data de admissão é obrigatória.");
+            }
+            return destino;
+        }
     }
 }

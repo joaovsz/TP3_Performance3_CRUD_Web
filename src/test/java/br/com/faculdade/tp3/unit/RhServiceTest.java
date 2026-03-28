@@ -16,6 +16,7 @@ import br.com.faculdade.tp3.exception.EntradaInvalidaException;
 import br.com.faculdade.tp3.exception.RecursoDuplicadoException;
 import br.com.faculdade.tp3.model.Departamento;
 import br.com.faculdade.tp3.model.Funcionario;
+import br.com.faculdade.tp3.model.FuncionarioAdministrativo;
 import br.com.faculdade.tp3.model.MovimentacaoRh;
 import br.com.faculdade.tp3.model.Salario;
 import br.com.faculdade.tp3.model.enums.FuncionarioStatus;
@@ -167,6 +168,36 @@ class RhServiceTest {
         assertThatThrownBy(() -> rhService.promover(1L, payload))
                 .isInstanceOf(EntradaInvalidaException.class)
                 .hasMessageContaining("ativos");
+    }
+
+    @Test
+    void deveFalharPromocaoIncompativelComTipoDoFuncionario() {
+        Funcionario funcionario = new FuncionarioAdministrativo();
+        funcionario.setId(1L);
+        funcionario.setNome("Ana Souza");
+        funcionario.setEmail("ana.souza@empresa.com");
+        funcionario.setCpf("12345678901");
+        funcionario.setCargo("Assistente Administrativa");
+        funcionario.setStatus(FuncionarioStatus.ATIVO);
+        funcionario.setDepartamento(departamento);
+        funcionario.setDataAdmissao(LocalDate.now());
+
+        Salario salario = new Salario();
+        salario.setValorAtual(new BigDecimal("5000.00"));
+        funcionario.definirSalario(salario);
+
+        PromocaoPayload payload = new PromocaoPayload();
+        payload.setNovoCargo("Diretor de Tecnologia");
+        payload.setPercentualAumento(new BigDecimal("10.00"));
+        payload.setMotivo("Promoção para diretoria");
+
+        when(funcionarioRepository.findById(1L)).thenReturn(Optional.of(funcionario));
+
+        assertThatThrownBy(() -> rhService.promover(1L, payload))
+                .isInstanceOf(EntradaInvalidaException.class)
+                .hasMessageContaining("incompatível");
+
+        verify(funcionarioRepository, never()).save(any());
     }
 
     @Test
