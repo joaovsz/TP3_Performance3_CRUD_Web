@@ -114,13 +114,24 @@ jobs:
       - name: Publish on test environment
         id: publish
         run: |
-          if [ -z "${TEST_APP_URL}" ]; then
+          RAW_URL="$(echo "${TEST_APP_URL}" | xargs)"
+          if [ -z "${RAW_URL}" ]; then
             echo "::warning::Secret TEST_APP_URL não configurada. Ajuste para habilitar deploy/DAST."
             echo "test_url=" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          echo "test_url=${TEST_APP_URL}" >> "$GITHUB_OUTPUT"
-          echo "::notice::Deploy de teste concluído em ${TEST_APP_URL}"
+          if [[ "${RAW_URL}" =~ ^https?:// ]]; then
+            NORMALIZED_URL="${RAW_URL}"
+          elif [[ "${RAW_URL}" =~ ^[A-Za-z0-9.-]+(:[0-9]+)?(/.*)?$ ]]; then
+            NORMALIZED_URL="https://${RAW_URL}"
+            echo "::warning::TEST_APP_URL sem protocolo. Ajustando automaticamente para https://."
+          else
+            echo "::warning::TEST_APP_URL inválida para DAST. Informe URL completa com http:// ou https://."
+            echo "test_url=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "test_url=${NORMALIZED_URL}" >> "$GITHUB_OUTPUT"
+          echo "::notice::Deploy de teste concluído."
 
       - name: OWASP ZAP Baseline (DAST)
         if: steps.publish.outputs.test_url != ''
@@ -164,13 +175,24 @@ jobs:
       - name: Publish on production environment
         id: publish
         run: |
-          if [ -z "${PRODUCTION_APP_URL}" ]; then
+          RAW_URL="$(echo "${PRODUCTION_APP_URL}" | xargs)"
+          if [ -z "${RAW_URL}" ]; then
             echo "::warning::Secret PRODUCTION_APP_URL não configurada. Ajuste para validar pós-deploy."
             echo "prod_url=" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          echo "prod_url=${PRODUCTION_APP_URL}" >> "$GITHUB_OUTPUT"
-          echo "::notice::Deploy em produção concluído em ${PRODUCTION_APP_URL}"
+          if [[ "${RAW_URL}" =~ ^https?:// ]]; then
+            NORMALIZED_URL="${RAW_URL}"
+          elif [[ "${RAW_URL}" =~ ^[A-Za-z0-9.-]+(:[0-9]+)?(/.*)?$ ]]; then
+            NORMALIZED_URL="https://${RAW_URL}"
+            echo "::warning::PRODUCTION_APP_URL sem protocolo. Ajustando automaticamente para https://."
+          else
+            echo "::warning::PRODUCTION_APP_URL inválida. Informe URL completa com http:// ou https://."
+            echo "prod_url=" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "prod_url=${NORMALIZED_URL}" >> "$GITHUB_OUTPUT"
+          echo "::notice::Deploy em produção concluído."
 
   post-deploy-validation:
     name: Selenium Post Deploy Validation
